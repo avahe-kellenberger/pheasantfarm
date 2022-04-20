@@ -1,7 +1,7 @@
 import shade
 
 type Pheasant* = ref object of PhysicsBody
-  animationPlayer: AnimationPlayer
+  animationPlayer*: AnimationPlayer
   sprite*: Sprite
 
 proc createIdleAnimation(pheasant: Pheasant): Animation =
@@ -49,6 +49,31 @@ proc createRunAnimation(pheasant: Pheasant): Animation =
 
   return runAnim
 
+proc createEatingAnimation(pheasant: Pheasant): Animation =
+  const
+    frameDuration = 0.08
+    frameCount = 9
+    animDuration = frameCount * frameDuration
+
+  var eatingAnim = newAnimation(animDuration, false)
+
+  # Change the spritesheet coordinate
+  let animCoordFrames: seq[KeyFrame[IVector]] =
+    @[
+      (ivector(1, 0), 0.0),
+      (ivector(2, 0), frameDuration * 1),
+      (ivector(3, 0), frameDuration * 2),
+      (ivector(2, 0), frameDuration * 3),
+      (ivector(3, 0), frameDuration * 4),
+      (ivector(2, 0), frameDuration * 5),
+      (ivector(3, 0), frameDuration * 6),
+      (ivector(2, 0), frameDuration * 7),
+      (ivector(1, 0), frameDuration * 8)
+    ]
+
+  eatingAnim.addNewAnimationTrack(pheasant.sprite.frameCoords, animCoordFrames)
+  return eatingAnim
+
 proc createPheasantSprite(): Sprite =
   let (_, image) = Images.loadImage("./assets/common_pheasant.png", FILTER_NEAREST)
   result = newSprite(image, 4, 1)
@@ -57,6 +82,7 @@ proc createAnimPlayer(pheasant: Pheasant): AnimationPlayer =
   result = newAnimationPlayer()
   result.addAnimation("idle", createIdleAnimation(pheasant))
   result.addAnimation("run", createRunAnimation(pheasant))
+  result.addAnimation("eating", createEatingAnimation(pheasant))
   result.playAnimation("idle")
 
 proc createCollisionShape(): CollisionShape =

@@ -9,7 +9,7 @@ initEngineSingleton(
   clearColor = newColor(0, 102, 17)
 )
 
-let layer = newPhysicsLayer(gravity = VECTOR_ZERO, z = 1.0)
+let layer = newPhysicsLayer(gravity = VECTOR_ZERO)
 Game.scene.addLayer layer
 
 # Pheasant
@@ -22,7 +22,7 @@ Game.scene.camera = camera
 layer.addChild(player)
 
 # Custom physics handling for the player
-const speed = 40.0
+const speed = 25.0
 
 proc physicsProcess(this: Node, deltaTime: float) =
   if Input.wasKeyJustPressed(K_ESCAPE):
@@ -33,6 +33,7 @@ proc physicsProcess(this: Node, deltaTime: float) =
     leftStickX = Input.leftStickX()
     leftPressed = Input.isKeyPressed(K_LEFT) or leftStickX < -0.01
     rightPressed = Input.isKeyPressed(K_RIGHT) or leftStickX > 0.01
+    wasBJustPressed = Input.wasKeyJustPressed(K_B)
 
   proc run() =
     ## Handles player running
@@ -53,7 +54,12 @@ proc physicsProcess(this: Node, deltaTime: float) =
 
       player.playAnimation("run")
 
-  run()
+  if wasBJustPressed:
+    player.playAnimation("eating")
+  elif
+    player.animationPlayer.currentAnimationName != "eating" or
+    player.animationPlayer.currentAnimation.isFinished:
+      run()
 
   camera.z += Input.wheelScrolledLastFrame.float * 0.03
 

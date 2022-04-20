@@ -13,3 +13,6 @@ requires "https://github.com/avahe-kellenberger/shade"
 task runr, "Runs the game":
   exec "nim r -d:release src/pheasantfarm.nim"
 
+task rund, "Runs the game in debug mode":
+  exec "nim r -d:debug src/pheasantfarm.nim"
+
