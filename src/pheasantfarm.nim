@@ -7,7 +7,7 @@ initEngineSingleton(
   1920,
   1080,
   fullscreen = true,
-  clearColor = newColor(0, 102, 17)
+  clearColor = newColor(26, 136, 24)
 )
 
 let layer = newPhysicsLayer(gravity = VECTOR_ZERO)
@@ -37,9 +37,9 @@ Input.addEventListener(
 
 when not defined(debug):
   # Play some music
-  let (someSong, err) = capture loadMusic("./assets/night_prowler.ogg")
+  let (someSong, err) = capture loadMusic("./assets/music/joy-ride.ogg")
   if err == nil:
-    discard capture fadeInMusic(someSong, 2.0, 0.15)
+    discard capture fadeInMusic(someSong, 2.0, 0.3)
   else:
     echo "Error playing music: " & err.msg
 
