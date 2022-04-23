@@ -1,4 +1,5 @@
 import shade
+import std/random
 import pheasantfarmpkg/pheasant
 
 initEngineSingleton(
@@ -13,25 +14,26 @@ let layer = newPhysicsLayer(gravity = VECTOR_ZERO)
 Game.scene.addLayer layer
 
 # Pheasant
-let player = createNewPheasant()
-
 let camera = newCamera()
 camera.z = 0.8
 Game.scene.camera = camera
 
-layer.addChild(player)
+for i in 0..8:
+  let pheasant = createNewPheasant()
+  pheasant.setLocation(vector(rand(-120.0 .. 120.0), rand(-80.0 .. 80.0)))
+  layer.addChild(pheasant)
 
-# Custom physics handling for the player
-const speed = 16.0
-
-proc onUpdate(this: Node, deltaTime: float) =
-  if Input.wasKeyJustPressed(K_ESCAPE):
+Input.addKeyEventListener(
+  K_ESCAPE,
+  proc(key: Keycode, state: KeyState) =
     Game.stop()
-    return
+)
 
-  camera.z += Input.wheelScrolledLastFrame.float * 0.03
-
-player.onUpdate = onUpdate
+Input.addEventListener(
+  MOUSEWHEEL,
+  proc(e: Event): bool =
+    camera.z += float(e.wheel.y) * 0.03
+)
 
 when not defined(debug):
   # Play some music

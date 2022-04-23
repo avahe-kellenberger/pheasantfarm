@@ -20,10 +20,22 @@ type
 
 proc setAction*(this: Pheasant, action: PheasantAction)
 
+proc pickRandomDirection(this: Pheasant) =
+  this.direction = vector(
+    if rand(1) == 1: 1.0 else: -1.0,
+    if rand(1) == 1: 1.0 else: -1.0
+  )
+
+  # Flip sprite to face proper direction
+  if this.direction.x > 0:
+    this.scale.x = 1.0
+  else:
+    this.scale.x = -1.0
+
 proc createIdleAnimation(this: Pheasant): Animation =
-  const
-    frameDuration = 1.0
-    frameCount = 1
+  const frameCount = 1
+  let
+    frameDuration = rand(0.8 .. 1.2)
     animDuration = frameCount * frameDuration
 
   # Set up the idle animation
@@ -144,16 +156,11 @@ proc createNewPheasant*(): Pheasant =
   result.collisionShape = collisionShape
 
   # Starts as idle
-  result.setAction(IDLE)
+  result.setAction(randomAction())
+  result.pickRandomDirection()
 
 proc playAnimation*(this: Pheasant, name: string) =
   this.animationPlayer.playAnimation(name)
-
-proc pickRandomDirection(): Vector =
-  result = vector(
-    if rand(1) == 1: 1.0 else: -1.0,
-    if rand(1) == 1: 1.0 else: -1.0
-  )
 
 proc setAction*(this: Pheasant, action: PheasantAction) =
   let prevAction = this.currentAction
@@ -163,12 +170,7 @@ proc setAction*(this: Pheasant, action: PheasantAction) =
   case this.currentAction:
     of WALKING:
       if prevAction != WALKING:
-        this.direction = pickRandomDirection()
-        # Flip sprite to face proper direction
-        if this.direction.x > 0:
-          this.scale.x = 1.0
-        else:
-          this.scale.x = -1.0
+        this.pickRandomDirection()
 
       this.velocity = this.direction * speed
       this.playAnimation("walk")
