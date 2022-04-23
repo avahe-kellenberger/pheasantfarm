@@ -11,11 +11,12 @@ type
     IDLE,
     WALKING,
     EATING
-  Pheasant* = ref object of PhysicsBody
+  Pheasant* = ref object of Node
     animationPlayer*: AnimationPlayer
     sprite*: Sprite
     currentAction: PheasantAction
     timeSinceActionStarted: float
+    velocity: Vector
     direction: Vector
 
 proc setAction*(this: Pheasant, action: PheasantAction)
@@ -146,14 +147,14 @@ proc createCollisionShape(): CollisionShape =
 
 proc createNewPheasant*(): Pheasant =
   result = Pheasant()
-  initPhysicsBody(PhysicsBody(result))
+  initNode(Node(result))
 
   let sprite = createPheasantSprite()
   result.sprite = sprite
   result.animationPlayer = createAnimPlayer(result)
 
-  let collisionShape = createCollisionShape()
-  result.collisionShape = collisionShape
+  # let collisionShape = createCollisionShape()
+  # result.collisionShape = collisionShape
 
   # Starts as idle
   result.setAction(randomAction())
@@ -179,21 +180,22 @@ proc setAction*(this: Pheasant, action: PheasantAction) =
     of IDLE:
       this.playAnimation("idle")
 
-proc ai*(this: Pheasant) =
+proc ai*(this: Pheasant, deltaTime: float) =
   case this.currentAction:
     of WALKING:
-      discard
+      this.move(this.velocity * deltaTime)
     of EATING:
       discard
     of IDLE:
       discard
 
 method update*(this: Pheasant, deltaTime: float) =
-  procCall PhysicsBody(this).update(deltaTime)
-  this.ai()
+  procCall Node(this).update(deltaTime)
+  this.ai(deltaTime)
   this.timeSinceActionStarted += deltaTime
   this.animationPlayer.update(deltaTime)
 
-Pheasant.renderAsChildOf(PhysicsBody):
+# NOTE: Don't need physics, just fence bounds checks
+Pheasant.renderAsChildOf(Node):
   this.sprite.render(ctx)
 
