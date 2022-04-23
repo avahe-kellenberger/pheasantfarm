@@ -22,48 +22,16 @@ Game.scene.camera = camera
 layer.addChild(player)
 
 # Custom physics handling for the player
-const speed = 25.0
+const speed = 16.0
 
-proc physicsProcess(this: Node, deltaTime: float) =
+proc onUpdate(this: Node, deltaTime: float) =
   if Input.wasKeyJustPressed(K_ESCAPE):
     Game.stop()
     return
 
-  let
-    leftStickX = Input.leftStickX()
-    leftPressed = Input.isKeyPressed(K_LEFT) or leftStickX < -0.01
-    rightPressed = Input.isKeyPressed(K_RIGHT) or leftStickX > 0.01
-    wasBJustPressed = Input.wasKeyJustPressed(K_B)
-
-  proc run() =
-    ## Handles player running
-    if leftPressed == rightPressed:
-      # TODO: Need to finish run animation, then transition to idle.
-      # Can do this with a finite state machine.
-      player.playAnimation("idle")
-      player.velocityX = 0
-    else:
-      if rightPressed:
-        player.velocityX = speed
-        if player.scale.x < 0.0:
-          player.scale = vector(abs(player.scale.x), player.scale.y)
-      else:
-        player.velocityX = -speed
-        if player.scale.y > 0.0:
-          player.scale = vector(-1 * abs(player.scale.x), player.scale.y)
-
-      player.playAnimation("run")
-
-  if wasBJustPressed:
-    player.playAnimation("eating")
-  elif
-    player.animationPlayer.currentAnimationName != "eating" or
-    player.animationPlayer.currentAnimation.isFinished:
-      run()
-
   camera.z += Input.wheelScrolledLastFrame.float * 0.03
 
-player.onUpdate = physicsProcess
+player.onUpdate = onUpdate
 
 when not defined(debug):
   # Play some music

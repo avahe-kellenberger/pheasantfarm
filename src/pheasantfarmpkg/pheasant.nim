@@ -1,10 +1,26 @@
 import shade
 
-type Pheasant* = ref object of PhysicsBody
-  animationPlayer*: AnimationPlayer
-  sprite*: Sprite
+import std/random
 
-proc createIdleAnimation(pheasant: Pheasant): Animation =
+randomize()
+
+const speed = 16.0
+
+type
+  PheasantAction* = enum
+    IDLE,
+    WALKING,
+    EATING
+  Pheasant* = ref object of PhysicsBody
+    animationPlayer*: AnimationPlayer
+    sprite*: Sprite
+    currentAction: PheasantAction
+    timeSinceActionStarted: float
+    direction: Vector
+
+proc setAction*(this: Pheasant, action: PheasantAction)
+
+proc createIdleAnimation(this: Pheasant): Animation =
   const
     frameDuration = 1.0
     frameCount = 1
@@ -15,22 +31,22 @@ proc createIdleAnimation(pheasant: Pheasant): Animation =
 
   # Change the spritesheet coordinate
   let animCoordFrames: seq[KeyFrame[IVector]] = @[(ivector(0, 0), 0.0)]
-  idleAnim.addNewAnimationTrack(pheasant.sprite.frameCoords, animCoordFrames)
+  idleAnim.addNewAnimationTrack(this.sprite.frameCoords, animCoordFrames)
   return idleAnim
 
-proc createRunAnimation(pheasant: Pheasant): Animation =
+proc createWalkAnimation(this: Pheasant): Animation =
   const
     frameDuration = 0.08
     frameCount = 3
     animDuration = frameCount * frameDuration
 
-  # Set up the run animation
-  var runAnim = newAnimation(animDuration, true)
+  # Set up the walk animation
+  let walkAnim = newAnimation(animDuration, false)
 
   # Change the spritesheet coordinate
   let animCoordFrames: seq[KeyFrame[IVector]] = @[(ivector(0, 0), 0.0)]
-  runAnim.addNewAnimationTrack(
-    pheasant.sprite.frameCoords,
+  walkAnim.addNewAnimationTrack(
+    this.sprite.frameCoords,
     animCoordFrames
   )
 
@@ -42,14 +58,14 @@ proc createRunAnimation(pheasant: Pheasant): Animation =
       (vector(0, 0), frameDuration * 2)
     ]
 
-  runAnim.addNewAnimationTrack(
-    pheasant.sprite.offset,
+  walkAnim.addNewAnimationTrack(
+    this.sprite.offset,
     spriteOffsetFrames
   )
 
-  return runAnim
+  return walkAnim
 
-proc createEatingAnimation(pheasant: Pheasant): Animation =
+proc createEatingAnimation(this: Pheasant): Animation =
   const
     frameDuration = 0.08
     frameCount = 9
@@ -71,19 +87,47 @@ proc createEatingAnimation(pheasant: Pheasant): Animation =
       (ivector(1, 0), frameDuration * 8)
     ]
 
-  eatingAnim.addNewAnimationTrack(pheasant.sprite.frameCoords, animCoordFrames)
+  eatingAnim.addNewAnimationTrack(this.sprite.frameCoords, animCoordFrames)
   return eatingAnim
 
 proc createPheasantSprite(): Sprite =
   let (_, image) = Images.loadImage("./assets/common_pheasant.png", FILTER_NEAREST)
   result = newSprite(image, 4, 1)
 
-proc createAnimPlayer(pheasant: Pheasant): AnimationPlayer =
+proc randomAction(): PheasantAction =
+  rand(PheasantAction.low .. PheasantAction.high)
+
+proc onWalkingFinished(this: Pheasant) =
+  this.velocity = VECTOR_ZERO
+  this.setAction(randomAction())
+
+proc onEatingFinished(this: Pheasant) =
+  this.setAction(IDLE)
+
+proc onIdleFinished(this: Pheasant) =
+  this.setAction(WALKING)
+
+proc createAnimPlayer(this: Pheasant): AnimationPlayer =
   result = newAnimationPlayer()
-  result.addAnimation("idle", createIdleAnimation(pheasant))
-  result.addAnimation("run", createRunAnimation(pheasant))
-  result.addAnimation("eating", createEatingAnimation(pheasant))
+  let
+    idleAnim = createIdleAnimation(this)
+    walkAnim = createWalkAnimation(this)
+    eatingAnim = createEatingAnimation(this)
+
+  result.addAnimation("idle", idleAnim)
+  result.addAnimation("walk", walkAnim)
+  result.addAnimation("eating", eatingAnim)
   result.playAnimation("idle")
+
+  # Add callbacks to each animation.
+  idleAnim.onFinished:
+    onIdleFinished(this)
+
+  walkAnim.onFinished:
+    onWalkingFinished(this)
+
+  eatingAnim.onFinished:
+    onEatingFinished(this)
 
 proc createCollisionShape(): CollisionShape =
   result = newCollisionShape(newAABB(-8, -8, 8, 8))
@@ -99,11 +143,53 @@ proc createNewPheasant*(): Pheasant =
   let collisionShape = createCollisionShape()
   result.collisionShape = collisionShape
 
-proc playAnimation*(pheasant: Pheasant, name: string) =
-  pheasant.animationPlayer.playAnimation(name)
+  # Starts as idle
+  result.setAction(IDLE)
+
+proc playAnimation*(this: Pheasant, name: string) =
+  this.animationPlayer.playAnimation(name)
+
+proc pickRandomDirection(): Vector =
+  result = vector(
+    if rand(1) == 1: 1.0 else: -1.0,
+    if rand(1) == 1: 1.0 else: -1.0
+  )
+
+proc setAction*(this: Pheasant, action: PheasantAction) =
+  let prevAction = this.currentAction
+  this.currentAction = action
+  this.timeSinceActionStarted = 0.0
+
+  case this.currentAction:
+    of WALKING:
+      if prevAction != WALKING:
+        this.direction = pickRandomDirection()
+        # Flip sprite to face proper direction
+        if this.direction.x > 0:
+          this.scale.x = 1.0
+        else:
+          this.scale.x = -1.0
+
+      this.velocity = this.direction * speed
+      this.playAnimation("walk")
+    of EATING:
+      this.playAnimation("eating")
+    of IDLE:
+      this.playAnimation("idle")
+
+proc ai*(this: Pheasant) =
+  case this.currentAction:
+    of WALKING:
+      discard
+    of EATING:
+      discard
+    of IDLE:
+      discard
 
 method update*(this: Pheasant, deltaTime: float) =
   procCall PhysicsBody(this).update(deltaTime)
+  this.ai()
+  this.timeSinceActionStarted += deltaTime
   this.animationPlayer.update(deltaTime)
 
 Pheasant.renderAsChildOf(PhysicsBody):
