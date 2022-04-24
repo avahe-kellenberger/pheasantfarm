@@ -17,8 +17,7 @@ Game.scene.addLayer layer
 
 # Pheasant
 let camera = newCamera()
-# TODO: Fix camera screenToWorldCoord to account for relative z
-# camera.z = 0.8
+camera.z = 0.8
 Game.scene.camera = camera
 
 # NOTE: Temporary pheasant spawning.

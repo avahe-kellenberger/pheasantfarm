@@ -14,6 +14,7 @@ proc newButton*(imagePath: string): Button =
   result = Button()
   let (_, image) = Images.loadImage(imagePath, FILTER_NEAREST)
   result.sprite = newSprite(image)
+  result.scale = VECTOR_ONE
 
 template x*(this: Button): float =
   this.location.x
@@ -44,5 +45,6 @@ proc setLocation*(this: Button, x, y: float) =
 proc render*(this: Button, ctx: Target) =
   ctx.scale(this.scale.x, this.scale.y):
     this.sprite.render(ctx)
-    this.getBounds().stroke(ctx)
 
+  when defined(renderUIBounds):
+    this.getBounds().stroke(ctx)

@@ -26,10 +26,11 @@ proc newStartMenu*(): StartMenu =
       echo "clicked at: " & $x & ", " & $y
       let worldCoord =
         if Game.scene.camera != nil:
-          Game.scene.camera.screenToWorldCoord(x, y)
+          Game.scene.camera.screenToWorldCoord(x, y, 1.0 - Game.scene.camera.z)
         else:
           vector(x, y)
 
+      echo "worldCoord: ", worldCoord
       if this.startButton.contains(worldCoord):
         this.onStartClicked()
   )
