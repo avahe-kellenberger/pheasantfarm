@@ -1,6 +1,6 @@
 import shade
 import std/random
-import pheasantfarmpkg/pheasant
+import pheasantfarmpkg/[startmenu, pheasant]
 
 initEngineSingleton(
   "Pheasant Pharm",
@@ -23,6 +23,9 @@ for i in 0..8:
   pheasant.setLocation(vector(rand(-120.0 .. 120.0), rand(-80.0 .. 80.0)))
   layer.addChild(pheasant)
 
+let menu = newStartMenu()
+layer.addChild(menu)
+
 Input.addKeyEventListener(
   K_ESCAPE,
   proc(key: Keycode, state: KeyState) =
@@ -39,7 +42,7 @@ when not defined(debug):
   # Play some music
   let (someSong, err) = capture loadMusic("./assets/music/joy-ride.ogg")
   if err == nil:
-    discard capture fadeInMusic(someSong, 2.0, 0.3)
+    discard capture fadeInMusic(someSong, 2.0, 0.25)
   else:
     echo "Error playing music: " & err.msg
 
