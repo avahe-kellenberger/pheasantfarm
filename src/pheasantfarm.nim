@@ -1,6 +1,8 @@
 import shade
 import std/random
-import pheasantfarmpkg/[startmenu, pheasant]
+
+import pheasantfarmpkg/pheasant
+import pheasantfarmpkg/ui/startmenu
 
 initEngineSingleton(
   "Pheasant Pharm",
@@ -15,9 +17,11 @@ Game.scene.addLayer layer
 
 # Pheasant
 let camera = newCamera()
-camera.z = 0.8
+# TODO: Fix camera screenToWorldCoord to account for relative z
+# camera.z = 0.8
 Game.scene.camera = camera
 
+# NOTE: Temporary pheasant spawning.
 for i in 0..8:
   let pheasant = createNewPheasant()
   pheasant.setLocation(vector(rand(-120.0 .. 120.0), rand(-80.0 .. 80.0)))
