@@ -1,5 +1,16 @@
 import shade
 
+const MOVEMENT_KEYS = [
+  K_UP,
+  K_DOWN,
+  K_LEFT,
+  K_RIGHT,
+  K_W,
+  K_A,
+  K_S,
+  K_D
+]
+
 type
   Player* = ref object of PhysicsBody
     animationPlayer*: AnimationPlayer
@@ -87,25 +98,48 @@ proc createCollisionShape(): CollisionShape =
 proc createAnimPlayer(this: Player): AnimationPlayer =
   result = newAnimationPlayer()
 
-  result.addAnimation("idleDownAnimation", this.createIdleDownAnimation())
-  result.addAnimation("idleLeftAnimation", this.createIdleLeftAnimation())
-  result.addAnimation("idleRightAnimation", this.createIdleRightAnimation())
-  result.addAnimation("idleUpAnimation", this.createIdleUpAnimation())
+  result.addAnimation("idleDown", this.createIdleDownAnimation())
+  result.addAnimation("idleLeft", this.createIdleLeftAnimation())
+  result.addAnimation("idleRight", this.createIdleRightAnimation())
+  result.addAnimation("idleUp", this.createIdleUpAnimation())
 
-  result.addAnimation("idleHoldingDownAnimation", this.createIdleHoldingDownAnimation())
-  result.addAnimation("idleHoldingLeftAnimation", this.createIdleHoldingLeftAnimation())
-  result.addAnimation("idleHoldingRightAnimation", this.createIdleHoldingRightAnimation())
-  result.addAnimation("idleHoldingUpAnimation", this.createIdleHoldingUpAnimation())
+  result.addAnimation("idleHoldingDown", this.createIdleHoldingDownAnimation())
+  result.addAnimation("idleHoldingLeft", this.createIdleHoldingLeftAnimation())
+  result.addAnimation("idleHoldingRight", this.createIdleHoldingRightAnimation())
+  result.addAnimation("idleHoldingUp", this.createIdleHoldingUpAnimation())
 
-  result.addAnimation("walkDownAnimation", this.createWalkDownAnimation())
-  result.addAnimation("walkLeftAnimation", this.createWalkLeftAnimation())
-  result.addAnimation("walkRightAnimation", this.createWalkRightAnimation())
-  result.addAnimation("walkUpAnimation", this.createWalkUpAnimation())
+  let walkDownAnimation = this.createWalkDownAnimation()
+  walkDownAnimation.onFinished:
+    echo "FINISHED"
+    this.animationPlayer.playAnimation("idleDown")
+  result.addAnimation("walkDown", walkDownAnimation)
 
-  result.addAnimation("walkDownHoldingAnimation", this.createWalkDownHoldingAnimation())
-  result.addAnimation("walkLeftHoldingAnimation", this.createWalkLeftHoldingAnimation())
-  result.addAnimation("walkRightHoldingAnimation", this.createWalkRightHoldingAnimation())
-  result.addAnimation("walkUpHoldingAnimation", this.createWalkUpHoldingAnimation())
+  let walkLeftAnimation = this.createWalkLeftAnimation()
+  walkLeftAnimation.onFinished:
+    this.animationPlayer.playAnimation("idleLeft")
+  result.addAnimation("walkLeft", walkLeftAnimation)
+
+  result.addAnimation("walkRight", this.createWalkRightAnimation())
+  result.addAnimation("walkUp", this.createWalkUpAnimation())
+
+  result.addAnimation("walkDownHolding", this.createWalkDownHoldingAnimation())
+  result.addAnimation("walkLeftHolding", this.createWalkLeftHoldingAnimation())
+  result.addAnimation("walkRightHolding", this.createWalkRightHoldingAnimation())
+  result.addAnimation("walkUpHolding", this.createWalkUpHoldingAnimation())
+
+proc isMovementKeyPressed(): bool =
+  for key in MOVEMENT_KEYS:
+    if Input.isKeyPressed(key):
+      return true
+  return false
+
+proc handleInput(this: Player) =
+  Input.addEventListener(KEYUP, proc(e: Event): bool =
+    let keycode = e.key.keysym.sym
+    if keycode in MOVEMENT_KEYS and not isMovementKeyPressed():
+      # Stop walking by notifying the animation's callbacks that the animation has finished.
+     this.animationPlayer.currentAnimation.notifyFinishedCallbacks()
+  )
 
 proc newPlayer*(): Player =
   result = Player()
@@ -115,6 +149,12 @@ proc newPlayer*(): Player =
   result.sprite.offset.x = 0.5
   result.collisionShape = createCollisionShape()
   result.animationPlayer = createAnimPlayer(result)
+  result.animationPlayer.playAnimation("walkDown")
+  result.handleInput()
+
+method update*(this: Player, deltaTime: float) =
+  procCall PhysicsBody(this).update(deltaTime)
+  this.animationPlayer.update(deltaTime)
 
 Player.renderAsChildOf(PhysicsBody):
   this.sprite.render(ctx)
