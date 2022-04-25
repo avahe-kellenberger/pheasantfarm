@@ -1,6 +1,7 @@
 import os
 
 switch("multimethods", "on")
+switch("import", "std/lenientops")
 
 var
   path = getEnv("PATH")

@@ -8,9 +8,9 @@ type
   Tile* = Safeset[Node]
   Grid* = ref object
     tiles: Seq2D[Tile]
-    width: int
-    height: int
-    tileSize: float
+    width*: int
+    height*: int
+    tileSize*: float
     bounds*: AABB
 
 proc newGrid*(width, height: int, tileSize: float): Grid =
@@ -19,7 +19,7 @@ proc newGrid*(width, height: int, tileSize: float): Grid =
   result.tileSize = tileSize
   result.width = width
   result.height = height
-  result.bounds = newAABB(0.0, 0.0, float(width) * tileSize, float(height) * tileSize)
+  result.bounds = newAABB(0.0, 0.0, width * tileSize, height * tileSize)
 
 proc `[]`*(this: Grid, x, y: int): Tile =
   return this.tiles[x, y]
@@ -40,38 +40,41 @@ iterator findOverlappingTiles*(this: Grid, bounds: AABB): tuple[x: int, y: int] 
     for x in left..right:
       yield (x, y)
 
-proc renderTile*(this: Grid, tileX, tileY: int) =
-  discard
+proc tileToWorldCoord*(this: Grid, x, y: int): Vector =
+  return vector(
+    this.tileSize * x + this.tileSize * 0.5,
+    this.tileSize * y + this.tileSize * 0.5
+  )
 
 proc highlightTile*(this: Grid, ctx: Target, tileX, tileY: int, color: Color = PURPLE) =
   let
-    left = float(tileX) * this.tileSize
-    right = float(tileY) * this.tileSize
+    left = tileX * this.tileSize
+    right = tileY * this.tileSize
 
   ctx.rectangleFilled(
-    cfloat left,
-    cfloat right,
-    cfloat(left + this.tileSize),
-    cfloat(right + this.tileSize),
+    left,
+    right,
+    left + this.tileSize,
+    right + this.tileSize,
     color
   )
 
 proc render*(this: Grid, ctx: Target, camera: Camera) =
   for y in 0..this.height:
     ctx.line(
-      cfloat 0.0,
-      cfloat(float(y) * this.tileSize),
-      cfloat(float(this.width) * this.tileSize),
-      cfloat(float(y) * this.tileSize),
+      0.0,
+      y * this.tileSize,
+      this.width * this.tileSize,
+      y * this.tileSize,
       GREEN
     )
     
   for x in 0..this.width:
     ctx.line(
-      cfloat(float(x) * this.tileSize),
-      cfloat 0.0,
-      cfloat(float(x) * this.tileSize),
-      cfloat(float(this.height) * this.tileSize),
+      x * this.tileSize,
+      0.0,
+      x * this.tileSize,
+      this.height * this.tileSize,
       GREEN
     )
     

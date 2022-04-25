@@ -3,6 +3,7 @@ import std/random
 
 import pheasantfarmpkg/pheasant
 import pheasantfarmpkg/grid as gridModule
+import pheasantfarmpkg/fences
 
 initEngineSingleton(
   "Pheasant Pharm",
@@ -18,22 +19,23 @@ Game.scene.addLayer(gridLayer)
 let layer = newLayer()
 Game.scene.addLayer(layer)
 
-let grid = newGrid(100, 100, 16)
+let grid = newGrid(20, 13, 16)
 
 let targetedPheasant = createNewPheasant()
 targetedPheasant.setLocation(
-  grid.bounds.center + vector(rand(-120.0 .. 120.0),
-  rand(-80.0 .. 80.0))
+  grid.bounds.center +
+  vector(rand(-120.0 .. 120.0), rand(-80.0 .. 80.0))
 )
 
 layer.addChild(targetedPheasant)
+
+generateAndAddFences(layer, grid)
 
 # Pheasant
 let camera = newCamera()
 camera.z = 0.8
 camera.setLocation(grid.bounds.center)
 Game.scene.camera = camera
-
 
 when defined(debug):
   gridLayer.onRender = proc(this: Layer, ctx: Target) =
@@ -47,8 +49,8 @@ when defined(debug):
 for i in 0..8:
   let pheasant = createNewPheasant()
   pheasant.setLocation(
-    grid.bounds.center + vector(rand(-120.0 .. 120.0),
-    rand(-80.0 .. 80.0))
+    grid.bounds.center +
+    vector(rand(-120.0 .. 120.0), rand(-80.0 .. 80.0))
   )
   layer.addChild(pheasant)
 
