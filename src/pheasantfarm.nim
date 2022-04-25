@@ -2,7 +2,7 @@ import shade
 import std/random
 
 import pheasantfarmpkg/pheasant
-import pheasantfarmpkg/ui/startmenu
+import pheasantfarmpkg/grid as gridModule
 
 initEngineSingleton(
   "Pheasant Pharm",
@@ -12,22 +12,45 @@ initEngineSingleton(
   clearColor = newColor(26, 136, 24)
 )
 
-let layer = newPhysicsLayer(gravity = VECTOR_ZERO)
-Game.scene.addLayer layer
+let gridLayer = newLayer()
+Game.scene.addLayer(gridLayer)
+
+let layer = newLayer()
+Game.scene.addLayer(layer)
+
+let grid = newGrid(100, 100, 16)
+
+let targetedPheasant = createNewPheasant()
+targetedPheasant.setLocation(
+  grid.bounds.center + vector(rand(-120.0 .. 120.0),
+  rand(-80.0 .. 80.0))
+)
+
+layer.addChild(targetedPheasant)
 
 # Pheasant
 let camera = newCamera()
 camera.z = 0.8
+camera.setLocation(grid.bounds.center)
 Game.scene.camera = camera
+
+
+when defined(debug):
+  gridLayer.onRender = proc(this: Layer, ctx: Target) =
+    for (x, y) in grid.findOverlappingTiles(targetedPheasant.getBounds()):
+      grid.highlightTile(ctx, x, y)
+
+    grid.render(ctx, camera)
+    targetedPheasant.getBounds().stroke(ctx)
 
 # NOTE: Temporary pheasant spawning.
 for i in 0..8:
   let pheasant = createNewPheasant()
-  pheasant.setLocation(vector(rand(-120.0 .. 120.0), rand(-80.0 .. 80.0)))
+  pheasant.setLocation(
+    grid.bounds.center + vector(rand(-120.0 .. 120.0),
+    rand(-80.0 .. 80.0))
+  )
   layer.addChild(pheasant)
-
-let menu = newStartMenu()
-layer.addChild(menu)
 
 Input.addKeyEventListener(
   K_ESCAPE,
@@ -40,6 +63,10 @@ Input.addEventListener(
   proc(e: Event): bool =
     camera.z += float(e.wheel.y) * 0.03
 )
+
+proc isWalkable(grid: Grid, x, y: int): bool =
+  # TODO: Will need particular rules about if something is walkable.
+  return grid[x, y].len == 0
 
 when not defined(debug):
   # Play some music
