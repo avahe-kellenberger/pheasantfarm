@@ -39,9 +39,11 @@ method update*(this: GameLayer, deltaTime: float, onChildUpdate: proc(child: Nod
 
   for child in this.childIterator:
     if child of PhysicsBody:
-      let body = PhysicsBody(child)
-      if body.kind != PhysicsBodyKind.STATIC:
-        for (x, y) in this.grid.findOverlappingTiles(body.getBounds()):
+      let 
+        body = PhysicsBody(child)
+        bounds = body.getBounds()
+      if bounds != nil and body.kind != PhysicsBodyKind.STATIC:
+        for (x, y) in this.grid.findOverlappingTiles(bounds):
           for bodyInGrid in this.grid[x, y]:
             this.colliders.incl(bodyInGrid)
 

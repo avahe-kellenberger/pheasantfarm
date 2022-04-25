@@ -1,6 +1,7 @@
 import shade
 import std/random
 
+import pheasantfarmpkg/player as playerModule
 import pheasantfarmpkg/[pheasant, fences, gamelayer]
 import pheasantfarmpkg/grid as gridModule
 
@@ -57,6 +58,11 @@ for i in 0..8:
     vector(rand(-120.0 .. 120.0), rand(-80.0 .. 80.0))
   )
   layer.addChild(pheasant)
+
+# Create player
+let player = newPlayer()
+player.setLocation(grid.bounds.center)
+layer.addChild(player)
 
 Input.addKeyEventListener(
   K_ESCAPE,

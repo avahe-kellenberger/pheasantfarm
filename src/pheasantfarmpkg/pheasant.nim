@@ -6,6 +6,8 @@ randomize()
 
 const speed = 16.0
 
+var pheasantImageId = -1
+
 type
   PheasantAction* = enum
     IDLE,
@@ -103,8 +105,10 @@ proc createEatingAnimation(this: Pheasant): Animation =
   return eatingAnim
 
 proc createPheasantSprite(): Sprite =
-  let (_, image) = Images.loadImage("./assets/common_pheasant.png", FILTER_NEAREST)
-  result = newSprite(image, 4, 1)
+  if pheasantImageId == -1:
+    let (id, _) = Images.loadImage("./assets/common_pheasant.png", FILTER_NEAREST)
+    pheasantImageId = id
+  result = newSprite(Images[pheasantImageId], 4, 1)
 
 proc randomAction(): PheasantAction =
   rand(PheasantAction.low .. PheasantAction.high)
