@@ -142,7 +142,7 @@ proc createAnimPlayer(this: Pheasant): AnimationPlayer =
     onEatingFinished(this)
 
 proc createCollisionShape(): CollisionShape =
-  result = newCollisionShape(newAABB(-8, -8, 8, 8))
+  result = newCollisionShape(newAABB(-4, 6, 4, 8))
 
 proc createNewPheasant*(): Pheasant =
   result = Pheasant()
