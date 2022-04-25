@@ -30,9 +30,9 @@ proc pickRandomDirection(this: Pheasant) =
 
   # Flip sprite to face proper direction
   if this.direction.x > 0:
-    this.scale.x = 1.0
+    this.scale.x = abs(this.scale.x)
   else:
-    this.scale.x = -1.0
+    this.scale.x = -abs(this.scale.x)
 
 proc createIdleAnimation(this: Pheasant): Animation =
   const frameCount = 1
@@ -154,14 +154,15 @@ proc createNewPheasant*(): Pheasant =
 
   let sprite = createPheasantSprite()
   result.sprite = sprite
-  result.animationPlayer = createAnimPlayer(result)
 
-  let collisionShape = createCollisionShape()
-  result.collisionShape = collisionShape
+  result.animationPlayer = createAnimPlayer(result)
+  result.collisionShape = createCollisionShape()
 
   # Starts as idle
   result.setAction(randomAction())
   result.pickRandomDirection()
+
+  result.scale = vector(0.75, 0.75)
 
 proc playAnimation*(this: Pheasant, name: string) =
   this.animationPlayer.playAnimation(name)
@@ -198,7 +199,6 @@ method update*(this: Pheasant, deltaTime: float) =
   this.timeSinceActionStarted += deltaTime
   this.animationPlayer.update(deltaTime)
 
-# NOTE: Don't need physics, just fence bounds checks
 Pheasant.renderAsChildOf(PhysicsBody):
   this.sprite.render(ctx)
 

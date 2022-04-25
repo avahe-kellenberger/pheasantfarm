@@ -14,5 +14,5 @@ task runr, "Runs the game":
   exec "nim r -d:release src/pheasantfarm.nim"
 
 task rund, "Runs the game in debug mode":
-  exec "nim r -d:debug src/pheasantfarm.nim"
+  exec "nim r -d:debug -d:collisionoutlines src/pheasantfarm.nim"
 

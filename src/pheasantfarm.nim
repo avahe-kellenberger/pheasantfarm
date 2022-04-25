@@ -42,7 +42,6 @@ when defined(debug):
       grid.highlightTile(ctx, x, y)
 
     grid.render(ctx, camera)
-    targetedPheasant.getBounds().stroke(ctx)
 
     let mouseInWorldSpace = camera.screenToWorldCoord(Input.mouseLocation, layer.z - camera.z)
     let tileOpt = grid.worldCoordToTile(mouseInWorldSpace)

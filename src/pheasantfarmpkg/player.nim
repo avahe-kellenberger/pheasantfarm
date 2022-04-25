@@ -66,12 +66,17 @@ proc createPlayerSprite(this: Player): Sprite =
   let (_, image) = Images.loadImage("./assets/pharmer.png", FILTER_NEAREST)
   result = newSprite(image, 6, 4)
 
+proc createCollisionShape(): CollisionShape =
+  result = newCollisionShape(newAABB(-2, 6, 2, 8))
+
 proc newPlayer*(): Player =
   result = Player()
   initPhysicsBody(PhysicsBody(result))
   result.sprite = result.createPlayerSprite()
+  # Sprite isn't perfectly centered in frame.
+  result.sprite.offset.x = 0.5
+  result.collisionShape = createCollisionShape()
 
 Player.renderAsChildOf(PhysicsBody):
   this.sprite.render(ctx)
-
 
