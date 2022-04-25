@@ -152,9 +152,7 @@ proc createNewPheasant*(): Pheasant =
   result = Pheasant()
   initPhysicsBody(PhysicsBody(result))
 
-  let sprite = createPheasantSprite()
-  result.sprite = sprite
-
+  result.sprite = createPheasantSprite()
   result.animationPlayer = createAnimPlayer(result)
   result.collisionShape = createCollisionShape()
 
