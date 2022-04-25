@@ -1,9 +1,8 @@
 import shade
 import std/random
 
-import pheasantfarmpkg/pheasant
+import pheasantfarmpkg/[pheasant, fences, gamelayer]
 import pheasantfarmpkg/grid as gridModule
-import pheasantfarmpkg/fences
 
 initEngineSingleton(
   "Pheasant Pharm",
@@ -16,10 +15,9 @@ initEngineSingleton(
 let gridLayer = newLayer()
 Game.scene.addLayer(gridLayer)
 
-let layer = newLayer()
-Game.scene.addLayer(layer)
-
 let grid = newGrid(20, 13, 16)
+let layer = newGameLayer(grid)
+Game.scene.addLayer(layer)
 
 let targetedPheasant = createNewPheasant()
 targetedPheasant.setLocation(
@@ -45,6 +43,12 @@ when defined(debug):
     grid.render(ctx, camera)
     targetedPheasant.getBounds().stroke(ctx)
 
+    let mouseInWorldSpace = camera.screenToWorldCoord(Input.mouseLocation, layer.z - camera.z)
+    let tileOpt = grid.worldCoordToTile(mouseInWorldSpace)
+    if tileOpt.isSome():
+      let tile = tileOpt.get()
+      grid.highlightTile(ctx, tile)
+
 # NOTE: Temporary pheasant spawning.
 for i in 0..8:
   let pheasant = createNewPheasant()
@@ -63,7 +67,7 @@ Input.addKeyEventListener(
 Input.addEventListener(
   MOUSEWHEEL,
   proc(e: Event): bool =
-    camera.z += float(e.wheel.y) * 0.03
+    camera.z = camera.z + float(e.wheel.y) * 0.03
 )
 
 proc isWalkable(grid: Grid, x, y: int): bool =

@@ -1,8 +1,7 @@
 import shade
 import grid
 
-var
-  fenceImageId: int = -1
+var fenceImageId: int = -1
 
 type
   FenceAlignment = enum
@@ -29,24 +28,24 @@ proc newFence(alignment: FenceAlignment, lengthInTiles: int): Fence =
   if alignment == BOTTOM:
     result.sprite.offset = vector(0, -result.sprite.size.y)
 
-  # TODO: create collision shape based on orientation.
+  # Create collision shape based on orientation.
   case result.alignment:
-    of TOP:
-      let size = vector(result.sprite.size.x * lengthInTiles, result.sprite.size.y)
+    of TOP, BOTTOM:
+      let
+        size = vector(result.sprite.size.x * lengthInTiles, result.sprite.size.y)
+        halfSpriteSize = result.sprite.size * 0.5
+
       result.collisionShape = newCollisionShape(
-        newAABB(0, 0, size.x, size.y)
+        newAABB(-halfSpriteSize.x, -halfSpriteSize.y, size.x - halfSpriteSize.x, size.y - halfSpriteSize.y)
       )
-    of BOTTOM:
-      let size = vector(result.sprite.size.x * lengthInTiles, result.sprite.size.y)
+
+    of LEFT, RIGHT:
+      let
+        size = vector(result.sprite.size.x, result.sprite.size.y * lengthInTiles)
+        halfSpriteSize = result.sprite.size * 0.5
       result.collisionShape = newCollisionShape(
-        newAABB(0, 0, size.x, size.y)
-      )
-    of LEFT:
-      # result.collisionShape = nil
-      discard
-    of RIGHT:
-      # result.collisionShape = nil
-      discard
+        newAABB(-halfSpriteSize.x, -halfSpriteSize.y, size.x - halfSpriteSize.x, size.y - halfSpriteSize.y)
+       )
 
 proc generateAndAddFences*(layer: Layer, grid: Grid) =
   # Create top fence
@@ -68,6 +67,8 @@ proc generateAndAddFences*(layer: Layer, grid: Grid) =
   let rightFence = newFence(RIGHT, grid.height - 1)
   rightFence.setLocation(grid.tileToWorldCoord(grid.width - 1, 0))
   layer.addChild(rightFence)
+
+  grid.addPhysicsBodies(topFence, bottomFence, leftFence, rightFence)
 
 template renderHorizontal(this: Fence, ctx: Target) =
   for x in 0..<this.lengthInTiles:
@@ -110,3 +111,8 @@ Fence.renderAsChildOf(PhysicsBody):
       this.renderLeft(ctx)
     of RIGHT:
       this.renderRight(ctx)
+
+  when defined(debug):
+    if this.collisionShape != nil:
+      this.collisionShape.render(ctx)
+
