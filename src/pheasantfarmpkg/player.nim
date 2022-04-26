@@ -28,9 +28,13 @@ type
 const
     INPUT_MAP = {
       K_W: WALKING_UP,
+      K_UP: WALKING_UP,
       K_A: WALKING_LEFT,
+      K_LEFT: WALKING_LEFT,
       K_S: WALKING_DOWN,
-      K_D: WALKING_RIGHT
+      K_DOWN: WALKING_DOWN,
+      K_D: WALKING_RIGHT,
+      K_RIGHT: WALKING_RIGHT
     }.toTable()
 
     MOVEMENT_MAP = {
@@ -47,7 +51,12 @@ const
 
 # Idle animations
 
-template createSingleFrameAnimation(this: Player, coord: IVector, flip: bool = false, duration: float = 1.0): Animation =
+template createSingleFrameAnimation(
+  this: Player,
+  coord: IVector,
+  flip: bool = false,
+  duration: float = 1.0
+): Animation =
   this.createPlayerAnimation(duration, false, flip, coord)
 
 template createIdleDownAnimation(this: Player): Animation =
@@ -225,14 +234,14 @@ proc updateAnimation(this: Player) =
         this.animationPlayer.play("idleDown")
 
 proc calculateDirection(): IVector =
-  if Input.isKeyPressed(K_W):
+  if Input.isKeyPressed(K_W) or Input.isKeyPressed(K_UP):
     result.y += -1
-  if Input.isKeyPressed(K_A):
+  if Input.isKeyPressed(K_A) or Input.isKeyPressed(K_LEFT):
     result.x += -1
-  if Input.isKeyPressed(K_S):
-    result.x += 1
-  if Input.isKeyPressed(K_D):
+  if Input.isKeyPressed(K_S) or Input.isKeyPressed(K_DOWN):
     result.y += 1
+  if Input.isKeyPressed(K_D) or Input.isKeyPressed(K_RIGHT):
+    result.x += 1
 
 proc updateDirection(this: Player) =
   let dir = calculateDirection()
@@ -266,11 +275,14 @@ proc setupInputListeners(this: Player) =
 proc newPlayer*(): Player =
   result = Player()
   initPhysicsBody(PhysicsBody(result))
+  result.scale = vector(1.5, 1.5)
+
   result.sprite = result.createPlayerSprite()
   # Sprite isn't perfectly centered in frame.
   result.sprite.offset.x = 0.5
+  # Move sprite to render his feet at y 0
+  result.sprite.offset.y = 0.5
 
-  result.scale = vector(1.5, 1.5)
 
   result.collisionShape = createCollisionShape(result.scale)
   result.animationPlayer = createAnimPlayer(result)
