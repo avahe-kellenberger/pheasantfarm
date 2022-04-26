@@ -20,6 +20,7 @@ type
     RIGHT
 
   Player* = ref object of PhysicsBody
+    isControllable*: bool
     animationPlayer*: AnimationPlayer
     sprite*: Sprite
     direction: IVector
@@ -258,11 +259,13 @@ proc handleMovementKeyReleased(this: Player, keycode: KeyCode, repeat: bool) =
 
 proc setupInputListeners(this: Player) =
   Input.addEventListener(KEYUP, proc(e: Event): bool =
-    this.handleMovementKeyReleased(e.key.keysym.sym, e.key.repeat != 0)
+    if this.isControllable:
+      this.handleMovementKeyReleased(e.key.keysym.sym, e.key.repeat != 0)
   )
   
   Input.addEventListener(KEYDOWN, proc(e: Event): bool =
-    this.handleMovementKeyPressed(e.key.keysym.sym, e.key.repeat != 0)
+    if this.isControllable:
+      this.handleMovementKeyPressed(e.key.keysym.sym, e.key.repeat != 0)
   )
 
 proc newPlayer*(): Player =

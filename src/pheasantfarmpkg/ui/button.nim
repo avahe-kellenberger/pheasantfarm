@@ -1,14 +1,13 @@
 import shade
 
+import ui
+
 type
   Button* = ref object
-    location: Vector
+    position*: Position
     sprite*: Sprite
-    bounds: AABB
     scale*: Vector
-
-proc getBounds*(this: Button): AABB
-proc setLocation*(this: Button, x, y: float)
+    onClickHandler*: proc()
 
 proc newButton*(imagePath: string): Button =
   result = Button()
@@ -16,35 +15,14 @@ proc newButton*(imagePath: string): Button =
   result.sprite = newSprite(image)
   result.scale = VECTOR_ONE
 
-template x*(this: Button): float =
-  this.location.x
+template onClick*(this: Button, body: untyped) =
+  this.onClickHandler = proc() = body
 
-template y*(this: Button): float =
-  this.location.y
-
-template move*(this: Button, dx, dy: float) =
-  this.setLocation(this.x + dx, this.y + dy)
-
-proc contains*(this: Button, point: Vector): bool =
-  return this.getBounds().contains(point)
-
-proc getBounds*(this: Button): AABB =
-  if this.bounds == nil:
-    let halfSpriteSize = this.sprite.size * 0.5 * this.scale
-    this.bounds = newAABB(
-      this.x - halfSpriteSize.x,
-      this.y - halfSpriteSize.y,
-      this.x + halfSpriteSize.x,
-      this.x + halfSpriteSize.y
-    )
-  return this.bounds
-
-proc setLocation*(this: Button, x, y: float) =
-  this.bounds = nil
+proc size*(this: Button): Vector =
+  return this.sprite.size
 
 proc render*(this: Button, ctx: Target) =
-  ctx.scale(this.scale.x, this.scale.y):
-    this.sprite.render(ctx)
+  this.sprite.render(ctx)
 
   when defined(renderUIBounds):
     this.getBounds().stroke(ctx)

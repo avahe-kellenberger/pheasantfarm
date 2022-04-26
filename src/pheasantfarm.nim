@@ -1,8 +1,9 @@
 import shade
 import std/random
 
-import pheasantfarmpkg/player as playerModule
 import pheasantfarmpkg/[pheasant, fences, gamelayer]
+import pheasantfarmpkg/ui/startmenu as startMenuModule
+import pheasantfarmpkg/player as playerModule
 import pheasantfarmpkg/grid as gridModule
 import pheasantfarmpkg/egg as eggModule
 
@@ -125,17 +126,37 @@ when defined(debug):
       camera.z += float(e.wheel.y) * 0.03
   )
 
-proc isWalkable(grid: Grid, x, y: int): bool =
-  # TODO: Will need particular rules about if something is walkable.
-  return grid[x, y].len == 0
-
 when not defined(debug):
   # Play some music
   let (someSong, err) = capture loadMusic("./assets/music/joy-ride.ogg")
   if err == nil:
-    discard capture fadeInMusic(someSong, 2.0, 0.25)
+    discard capture fadeInMusic(someSong, 3.0, 0.25)
   else:
     echo "Error playing music: " & err.msg
+
+# Set up the start menu
+
+let startMenu = newStartMenu()
+Game.hud = newLayer()
+Game.hud.addChild(startMenu)
+startMenu.size = gamestate.resolution
+startMenu.setLocation(gamestate.resolution * 0.5)
+
+# Center the menu if the screen size changes.
+gamestate.onResolutionChanged:
+  startMenu.size = gamestate.resolution
+  startMenu.setLocation(gamestate.resolution * 0.5)
+
+let menuClickSound = loadSoundEffect("./assets/sfx/menu-click.wav")
+
+startMenu.startButton.onClick:
+  menuClickSound.play()
+  Game.hud.removeChild(startMenu)
+  player.isControllable = true
+  startMenu.visible = false
+
+startMenu.quitButton.onClick:
+  Game.stop()
 
 Game.start()
 

@@ -17,7 +17,7 @@ proc newEgg*(): Egg =
   result.sprite.scale = vector(0.75, 0.75)
 
   result.collisionShape = newCollisionShape(
-    newAABB(-2.5, -3, 2.5, 3).getScaledInstance(result.sprite.scale)
+    newAABB(-5, -6, 5, 6).getScaledInstance(result.sprite.scale)
   )
 
 Egg.renderAsChildOf(PhysicsBody):
