@@ -34,6 +34,9 @@ proc resolveCollision(this: GameLayer, bodyA, bodyB: PhysicsBody) =
   if collisionResult != nil:
     bodyA.move(collisionResult.getMinimumTranslationVector())
 
+    bodyA.notifyCollisionListeners(bodyB, collisionResult, VECTOR_ZERO)
+    bodyB.notifyCollisionListeners(bodyA, collisionResult.invert(), VECTOR_ZERO)
+
 method update*(this: GameLayer, deltaTime: float, onChildUpdate: proc(child: Node) = nil) =
   procCall Layer(this).update(deltaTime, onChildUpdate)
 
@@ -42,10 +45,12 @@ method update*(this: GameLayer, deltaTime: float, onChildUpdate: proc(child: Nod
       let 
         body = PhysicsBody(child)
         bounds = body.getBounds()
+
       if bounds != nil and body.kind != PhysicsBodyKind.STATIC:
         for (x, y) in this.grid.findOverlappingTiles(bounds):
           for bodyInGrid in this.grid[x, y]:
-            this.colliders.incl(bodyInGrid)
+            if body != bodyInGrid:
+              this.colliders.incl(bodyInGrid)
 
         for collider in this.colliders:
           this.resolveCollision(body, collider)

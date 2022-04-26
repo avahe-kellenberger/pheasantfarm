@@ -2,8 +2,9 @@ import shade
 import std/random
 
 import pheasantfarmpkg/player as playerModule
-import pheasantfarmpkg/[pheasant, fences, gamelayer, egg]
+import pheasantfarmpkg/[pheasant, fences, gamelayer]
 import pheasantfarmpkg/grid as gridModule
+import pheasantfarmpkg/egg as eggModule
 
 initEngineSingleton(
   "Pheasant Pharm",
@@ -38,14 +39,23 @@ for i in 0..100:
 
   layer.addChild(grass)
 
-let egg1 = newEgg()
-egg1.setLocation(
+let egg = newEgg()
+egg.setLocation(
   vector(
     rand(grid.bounds.left .. grid.bounds.right),
     rand(grid.bounds.top .. grid.bounds.bottom)
   )
 )
-layer.addChild(egg1)
+
+egg.addCollisionListener(
+  proc(this, other: PhysicsBody, r: CollisionResult, gravityNormal: Vector): bool =
+    if other of Player:
+      grid.removePhysicsBodies(egg)
+      layer.removeChild(egg)
+)
+
+layer.addChild(egg)
+grid.addPhysicsBodies(egg)
 
 let targetedPheasant = createNewPheasant()
 targetedPheasant.setLocation(

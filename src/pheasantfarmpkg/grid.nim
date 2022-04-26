@@ -65,6 +65,12 @@ proc addPhysicsBodies*(this: Grid, bodies: varargs[PhysicsBody]) =
     for (x, y) in this.findOverlappingTiles(bounds):
       this[x, y].add(body)
 
+proc removePhysicsBodies*(this: Grid, bodies: varargs[PhysicsBody]) =
+  for body in bodies:
+    let bounds = body.getBounds()
+    for (x, y) in this.findOverlappingTiles(bounds):
+      this[x, y].remove(body)
+
 proc tileToWorldCoord*(this: Grid, x, y: int): Vector =
   return vector(
     this.tileSize * x + this.tileSize * 0.5,
