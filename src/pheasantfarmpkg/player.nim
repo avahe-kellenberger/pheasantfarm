@@ -2,7 +2,7 @@ import shade
 
 import std/[tables, sugar, strutils]
 
-const speed = 48.0
+const speed = 64.0
 
 type
   PlayerAction {.pure.} = enum

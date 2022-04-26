@@ -50,8 +50,8 @@ for i in 0..250:
 let egg = newEgg()
 egg.setLocation(
   vector(
-    rand(grid.bounds.left .. grid.bounds.right),
-    rand(grid.bounds.top .. grid.bounds.bottom)
+    rand((grid.bounds.left + grid.tileSize + 4) .. (grid.bounds.right - grid.tileSize - 4)),
+    rand((grid.bounds.top + grid.tileSize + 4) .. (grid.bounds.bottom - grid.tileSize - 4))
   )
 )
 
@@ -77,7 +77,7 @@ generateAndAddFences(layer, grid)
 
 # Pheasant
 let camera = newCamera()
-camera.z = 0.8
+camera.z = 0.85
 camera.setLocation(grid.bounds.center)
 Game.scene.camera = camera
 
@@ -117,6 +117,13 @@ Input.addKeyEventListener(
   proc(key: Keycode, state: KeyState) =
     Game.stop()
 )
+
+when defined(debug):
+  Input.addEventListener(
+    MOUSEWHEEL,
+    proc(e: Event): bool =
+      camera.z += float(e.wheel.y) * 0.03
+  )
 
 proc isWalkable(grid: Grid, x, y: int): bool =
   # TODO: Will need particular rules about if something is walkable.

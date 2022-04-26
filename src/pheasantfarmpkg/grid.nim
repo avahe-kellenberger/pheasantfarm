@@ -113,7 +113,7 @@ proc highlightTile*(this: Grid, ctx: Target, tileX, tileY: int, color: Color = P
     let (i, font) = Fonts.load("./assets/fonts/kennypixel.ttf", 72)
     fontIndex = i
 
-  let textbox = newTextBox(Fonts[fontIndex], $numObjectsOnTile)
+  let textbox = newTextBox(Fonts[fontIndex], $numObjectsOnTile, renderFilter = FILTER_NEAREST)
   textbox.scale = vector(0.08, 0.08)
   textbox.setLocation(vector(left, top) + vector(this.tileSize * 0.5, this.tileSize * 0.5))
   textbox.render(ctx)

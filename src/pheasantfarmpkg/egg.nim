@@ -14,7 +14,7 @@ proc newEgg*(): Egg =
     eggImageId = id
 
   result.sprite = newSprite(Images[eggImageId])
-  result.sprite.scale = vector(0.5, 0.5)
+  result.sprite.scale = vector(0.75, 0.75)
 
   result.collisionShape = newCollisionShape(
     newAABB(-2.5, -3, 2.5, 3).getScaledInstance(result.sprite.scale)
