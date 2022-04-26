@@ -22,20 +22,28 @@ let layer = newGameLayer(grid)
 Game.scene.addLayer(layer)
 
 # Grass blades
-let
-  (_, grassImage) = Images.loadImage("./assets/grassblade.png", FILTER_NEAREST)
-  grassSprite = newSprite(grassImage)
+let (_, grassImage) = Images.loadImage("./assets/grass.png", FILTER_NEAREST)
 
-for i in 0..100:
-  let grass = newNode({LayerObjectFlags.RENDER})
+type Grass = ref object of Node
+  sprite: Sprite
+
+proc newGrass(): Grass =
+  result = Grass()
+  initNode(Node(result), {LayerObjectFlags.RENDER})
+  result.sprite = newSprite(grassImage, 6, 1)
+  result.sprite.frameCoords.x = rand(5)
+
+for i in 0..250:
+  let grass = newGrass()
   grass.setLocation(
     vector(
-      rand(grid.bounds.left .. grid.bounds.right),
-      rand(grid.bounds.top .. grid.bounds.bottom)
+      rand((grid.bounds.left + grid.tileSize + 4) .. (grid.bounds.right - grid.tileSize - 4)),
+      rand((grid.bounds.top + grid.tileSize + 4) .. (grid.bounds.bottom - grid.tileSize - 4))
     )
   )
+
   grass.onRender = proc(this: Node, ctx: Target) =
-    grassSprite.render(ctx)
+    Grass(this).sprite.render(ctx)
 
   layer.addChild(grass)
 
