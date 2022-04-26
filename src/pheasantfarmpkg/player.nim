@@ -37,13 +37,6 @@ const
       K_RIGHT: WALKING_RIGHT
     }.toTable()
 
-    MOVEMENT_MAP = {
-      UP: ivector(0, -1),
-      DOWN: ivector(0, 1),
-      LEFT: ivector(-1, 0),
-      RIGHT: ivector(1, 0)
-    }.toTable()
-
     MOVEMENT_KEYS = collect(newSeq):
       for key, value in INPUT_MAP.pairs:
         if ($value).startsWith("WALKING_"):
@@ -139,7 +132,7 @@ proc createPlayerSprite(this: Player): Sprite =
   result = newSprite(image, 6, 3)
 
 proc createCollisionShape(scale: Vector): CollisionShape =
-  result = newCollisionShape(newAABB(-2, 6, 2, 8).getScaledInstance(scale))
+  result = newCollisionShape(newAABB(-2, -2, 2, 0).getScaledInstance(scale))
 
 proc createAnimPlayer(this: Player): AnimationPlayer =
   result = newAnimationPlayer()
@@ -281,8 +274,7 @@ proc newPlayer*(): Player =
   # Sprite isn't perfectly centered in frame.
   result.sprite.offset.x = 0.5
   # Move sprite to render his feet at y 0
-  result.sprite.offset.y = 0.5
-
+  result.sprite.offset.y = -result.sprite.size.y * 0.5
 
   result.collisionShape = createCollisionShape(result.scale)
   result.animationPlayer = createAnimPlayer(result)

@@ -67,9 +67,9 @@ proc createWalkAnimation(this: Pheasant): Animation =
   # Sprite render offset for a "hopping" animation
   let spriteOffsetFrames: seq[KeyFrame[Vector]] =
     @[
-      (vector(0, 0), 0.0),
-      (vector(0, -3), frameDuration * 1),
-      (vector(0, 0), frameDuration * 2)
+      (this.sprite.offset, 0.0),
+      (vector(this.sprite.offset.x, this.sprite.offset.y - 3), frameDuration * 1),
+      (this.sprite.offset, frameDuration * 2)
     ]
 
   walkAnim.addNewAnimationTrack(
@@ -146,21 +146,22 @@ proc createAnimPlayer(this: Pheasant): AnimationPlayer =
     onEatingFinished(this)
 
 proc createCollisionShape(): CollisionShape =
-  result = newCollisionShape(newAABB(-4, 6, 4, 8))
+  result = newCollisionShape(newAABB(-4, -2, 4, 0))
 
 proc createNewPheasant*(): Pheasant =
   result = Pheasant()
   initPhysicsBody(PhysicsBody(result))
+  result.scale = vector(0.75, 0.75)
 
   result.sprite = createPheasantSprite()
+  result.sprite.offset.y = -result.sprite.size.y * 0.5
+
   result.animationPlayer = createAnimPlayer(result)
   result.collisionShape = createCollisionShape()
 
   # Starts as idle
   result.setAction(randomAction())
   result.pickRandomDirection()
-
-  result.scale = vector(0.75, 0.75)
 
 proc playAnimation*(this: Pheasant, name: string) =
   this.animationPlayer.playAnimation(name)
