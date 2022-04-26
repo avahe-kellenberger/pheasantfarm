@@ -1,20 +1,39 @@
 import shade
 
-const MOVEMENT_KEYS = [
-  K_UP,
-  K_DOWN,
-  K_LEFT,
-  K_RIGHT,
-  K_W,
-  K_A,
-  K_S,
-  K_D
-]
+import std/[tables, sugar, strutils]
+
+const speed = 48.0
 
 type
+  PlayerAction {.pure.} = enum
+    WALKING_UP
+    WALKING_DOWN
+    WALKING_LEFT
+    WALKING_RIGHT
+  
+  MovementAction = WALKING_UP..WALKING_RIGHT
+
   Player* = ref object of PhysicsBody
     animationPlayer*: AnimationPlayer
     sprite*: Sprite
+    direction: Vector
+
+const
+    INPUT_MAP = {
+      K_W: WALKING_UP,
+      K_UP: WALKING_UP,
+      K_S: WALKING_DOWN,
+      K_DOWN: WALKING_DOWN,
+      K_A: WALKING_LEFT,
+      K_LEFT: WALKING_LEFT,
+      K_D: WALKING_RIGHT,
+      K_RIGHT: WALKING_RIGHT
+    }.toTable()
+
+    MOVEMENT_KEYS = collect(newSeq):
+      for key, value in INPUT_MAP.pairs:
+        if ($value).startsWith("WALKING_"):
+          key
 
 # Idle animations
 
@@ -110,7 +129,6 @@ proc createAnimPlayer(this: Player): AnimationPlayer =
 
   let walkDownAnimation = this.createWalkDownAnimation()
   walkDownAnimation.onFinished:
-    echo "FINISHED"
     this.animationPlayer.playAnimation("idleDown")
   result.addAnimation("walkDown", walkDownAnimation)
 
@@ -133,12 +151,63 @@ proc isMovementKeyPressed(): bool =
       return true
   return false
 
+proc handleMovementKeyPressed(this: Player, keycode: KeyCode, repeat: bool) =
+  if repeat or keycode notin MOVEMENT_KEYS:
+    return
+
+  let action: MovementAction = INPUT_MAP[keycode]
+  case action:
+    of WALKING_LEFT:
+      if this.direction.x >= 0:
+        this.direction.x += -1.0
+    of WALKING_RIGHT:
+      if this.direction.x <= 0:
+        this.direction.x += 1.0
+    of WALKING_UP:
+      if this.direction.y >= 0:
+        this.direction.y += -1.0
+    of WALKING_DOWN:
+      if this.direction.y <= 0:
+        this.direction.y += 1.0
+
+  if this.direction == VECTOR_ZERO:
+    this.velocity = VECTOR_ZERO
+  else:
+    this.velocity = this.direction.normalize() * speed
+
+proc handleMovementKeyReleased(this: Player, keycode: KeyCode, repeat: bool) =
+  if repeat or keycode notin MOVEMENT_KEYS:
+    return
+
+  let action: MovementAction = INPUT_MAP[keycode]
+  case action:
+    of WALKING_LEFT:
+      if this.direction.x <= 0:
+        this.direction.x += 1.0
+    of WALKING_RIGHT:
+      if this.direction.x >= 0:
+        this.direction.x -= 1.0
+    of WALKING_UP:
+      if this.direction.y <= 0:
+        this.direction.y += 1.0
+    of WALKING_DOWN:
+      if this.direction.y >= 0:
+        this.direction.y += -1.0
+
+  if this.direction == VECTOR_ZERO:
+    # NOTE: This is how we transition to an idle animation.
+    this.animationPlayer.currentAnimation.notifyFinishedCallbacks()
+    this.velocity = VECTOR_ZERO
+  else:
+    this.velocity = this.direction.normalize() * speed
+
 proc handleInput(this: Player) =
   Input.addEventListener(KEYUP, proc(e: Event): bool =
-    let keycode = e.key.keysym.sym
-    if keycode in MOVEMENT_KEYS and not isMovementKeyPressed():
-      # Stop walking by notifying the animation's callbacks that the animation has finished.
-     this.animationPlayer.currentAnimation.notifyFinishedCallbacks()
+    this.handleMovementKeyReleased(e.key.keysym.sym, e.key.repeat != 0)
+  )
+  
+  Input.addEventListener(KEYDOWN, proc(e: Event): bool =
+    this.handleMovementKeyPressed(e.key.keysym.sym, e.key.repeat != 0)
   )
 
 proc newPlayer*(): Player =
