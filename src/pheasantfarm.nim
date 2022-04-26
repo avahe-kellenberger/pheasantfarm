@@ -2,7 +2,7 @@ import shade
 import std/random
 
 import pheasantfarmpkg/player as playerModule
-import pheasantfarmpkg/[pheasant, fences, gamelayer]
+import pheasantfarmpkg/[pheasant, fences, gamelayer, egg]
 import pheasantfarmpkg/grid as gridModule
 
 initEngineSingleton(
@@ -19,6 +19,33 @@ Game.scene.addLayer(gridLayer)
 let grid = newGrid(20, 13, 16)
 let layer = newGameLayer(grid)
 Game.scene.addLayer(layer)
+
+# Grass blades
+let
+  (_, grassImage) = Images.loadImage("./assets/grassblade.png", FILTER_NEAREST)
+  grassSprite = newSprite(grassImage)
+
+for i in 0..100:
+  let grass = newNode({LayerObjectFlags.RENDER})
+  grass.setLocation(
+    vector(
+      rand(grid.bounds.left .. grid.bounds.right),
+      rand(grid.bounds.top .. grid.bounds.bottom)
+    )
+  )
+  grass.onRender = proc(this: Node, ctx: Target) =
+    grassSprite.render(ctx)
+
+  layer.addChild(grass)
+
+let egg1 = newEgg()
+egg1.setLocation(
+  vector(
+    rand(grid.bounds.left .. grid.bounds.right),
+    rand(grid.bounds.top .. grid.bounds.bottom)
+  )
+)
+layer.addChild(egg1)
 
 let targetedPheasant = createNewPheasant()
 targetedPheasant.setLocation(
@@ -63,16 +90,14 @@ let player = newPlayer()
 player.setLocation(grid.bounds.center)
 layer.addChild(player)
 
+camera.setTrackedNode(player)
+camera.setTrackingEasingFunction(easeOutQuadratic)
+camera.completionRatioPerFrame = 0.05
+
 Input.addKeyEventListener(
   K_ESCAPE,
   proc(key: Keycode, state: KeyState) =
     Game.stop()
-)
-
-Input.addEventListener(
-  MOUSEWHEEL,
-  proc(e: Event): bool =
-    camera.z = camera.z + float(e.wheel.y) * 0.03
 )
 
 proc isWalkable(grid: Grid, x, y: int): bool =
