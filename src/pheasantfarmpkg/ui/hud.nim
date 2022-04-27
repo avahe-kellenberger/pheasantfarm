@@ -2,7 +2,7 @@ import shade
 
 import strformat
 
-import menu, ui, button, label, ../egg
+import panel, ui, button, label, ../egg
 export ui, button, label
 
 type HUD* = ref object of Panel

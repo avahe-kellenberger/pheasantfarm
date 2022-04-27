@@ -7,8 +7,14 @@ type
   UIElement* = ref object of RootObj
     position*: Position
     size*: Vector
+    visible*: bool
+
+proc initUIElement*(element: UIElement) =
+  element.visible = true
 
 template getLocationInParent*(position: Position, parentSize: Vector): Vector =
   vector(position.x * parentSize.x * 0.5, position.y * parentSize.y * 0.5)
 
-method render*(this: UIElement, ctx: Target) {.base.} = discard
+UIElement.renderAsParent:
+  if this.visible and callback != nil:
+    callback()

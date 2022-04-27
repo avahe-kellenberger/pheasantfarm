@@ -52,6 +52,7 @@ when isMainModule:
 
     # Add in-game HUD
     layer.hud.visible = true
+    layer.overlay.visible = true
     layer.isTimeCountingDown = true
 
   startMenu.quitButton.onClick:

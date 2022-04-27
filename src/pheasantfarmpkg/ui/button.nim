@@ -8,8 +8,12 @@ type
     onClickHandler*: proc()
     scale*: Vector
 
+proc initButton*(button: Button) =
+  initUIElement(UIElement(button))
+
 proc newButton*(sprite: Sprite): Button =
   result = Button()
+  initButton(result)
   result.sprite = sprite
   result.size = result.sprite.size
   result.scale = VECTOR_ONE
@@ -24,7 +28,7 @@ template size*(this: Button): Vector =
 template onClick*(this: Button, body: untyped) =
   this.onClickHandler = proc() = body
 
-method render*(this: Button, ctx: Target) =
+Button.renderAsChildOf(UIElement):
   ctx.scale(this.scale.x, this.scale.y):
     this.sprite.render(ctx)
 

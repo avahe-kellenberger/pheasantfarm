@@ -19,6 +19,7 @@ proc initLabel*(
   color: Color = BLACK,
   renderFilter: Filter = FILTER_LINEAR_MIPMAP
 ) =
+  initUIElement(UIElement(label))
   label.text = text
   label.color = color
   label.imageOfText = nil
@@ -43,7 +44,7 @@ proc setRenderFilter*(this: Label, filter: Filter) =
   if this.imageOfText != nil:
     this.imageOfText.setImageFilter(this.filter)
 
-method render*(this: Label, ctx: Target) =
+Label.renderAsChildOf(UIElement):
   if this.imageOfText == nil:
     let surface = renderText_Blended_Wrapped(
       fontloader.getFont(),

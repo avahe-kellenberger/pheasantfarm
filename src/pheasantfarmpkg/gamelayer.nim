@@ -8,6 +8,7 @@ import ui/hud as hudModule
 import grass as grassModule
 import player as playerModule
 import pheasant as pheasantModule
+import ui/overlay as overlayModule
 
 const
   numStartingPheasants = 9
@@ -21,6 +22,7 @@ var
 type
   GameLayer* = ref object of Layer
     hud*: HUD
+    overlay*: Overlay
 
     grid: Grid
     colliders: HashSet[PhysicsBody]
@@ -56,13 +58,29 @@ proc newGameLayer*(grid: Grid): GameLayer =
   )
   Game.hud.addChild(result.hud)
 
-  # Center the HUD if the screen size changes.
+  result.overlay = newOverlay()
+  result.overlay.size = gamestate.resolution
+  result.overlay.visible = false
+  result.overlay.setLocation(
+    getLocationInParent(result.overlay.position, gamestate.resolution) +
+    gamestate.resolution * 0.5
+  )
+
+  Game.hud.addChild(result.overlay)
+
+  # Center the HUD and overlay if the screen size changes.
   let this = result
   gamestate.onResolutionChanged:
     this.hud.setLocation(
       getLocationInParent(this.hud.position, gamestate.resolution) +
       vector(gamestate.resolution.x * 0.5, gamestate.resolution.y * 0.05)
     )
+
+    this.overlay.setLocation(
+      getLocationInParent(this.overlay.position, gamestate.resolution) +
+      gamestate.resolution * 0.5
+    )
+    this.overlay.size = gamestate.resolution
 
   result.grid = grid
   result.colliders = initHashSet[PhysicsBody]()
@@ -219,6 +237,8 @@ proc updateTimer(this: GameLayer, deltaTime: float) =
     let newTimeInSeconds = int ceil(this.timeRemaining)
     if oldTimeInSeconds != newTimeInSeconds:
       this.onSecondCountdown(newTimeInSeconds)
+
+    this.overlay.update(this.timeRemaining, float dayLengthInSeconds)
 
 method update*(this: GameLayer, deltaTime: float, onChildUpdate: proc(child: Node) = nil) =
   procCall Layer(this).update(deltaTime, onChildUpdate)
