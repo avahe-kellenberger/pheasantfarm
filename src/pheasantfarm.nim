@@ -100,8 +100,8 @@ Game.hud = newLayer()
 
 # HUD
 let hud = newHUD()
-hud.setTimeRemaining(8)
-hud.setMoney(21324)
+hud.setTimeRemaining(0)
+hud.setMoney(0)
 Game.hud.addChild(hud)
 hud.visible = false
 hud.setLocation(

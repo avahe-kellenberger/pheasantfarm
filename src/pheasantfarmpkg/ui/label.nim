@@ -62,4 +62,3 @@ proc `=destroy`(this: var LabelObj) =
   if this.imageOfText != nil:
     freeImage(this.imageOfText)
 
-
