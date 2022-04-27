@@ -145,7 +145,7 @@ startMenu.setLocation(gamestate.resolution * 0.5)
 # Center the menu if the screen size changes.
 gamestate.onResolutionChanged:
   startMenu.size = gamestate.resolution
-  startMenu.setLocation(gamestate.resolution * 0.5)
+  startMenu.setLocation(startMenu.getLocationInParent(gamestate.resolution))
 
 let menuClickSound = loadSoundEffect("./assets/sfx/menu-click.wav")
 
@@ -154,6 +154,9 @@ startMenu.startButton.onClick:
   Game.hud.removeChild(startMenu)
   player.isControllable = true
   startMenu.visible = false
+
+  # TODO: Generate level,
+  # Add in-game HUD
 
 startMenu.quitButton.onClick:
   Game.stop()
