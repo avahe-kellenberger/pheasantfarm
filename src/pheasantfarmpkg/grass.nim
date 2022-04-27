@@ -14,8 +14,13 @@ proc newGrass*(): Grass =
     let (_, img) = Images.loadImage("./assets/grass.png", FILTER_NEAREST)
     grassImage = img
 
-  result.sprite = newSprite(grassImage, 6, 1)
+  result.sprite = newSprite(grassImage, 6, 2)
   result.sprite.frameCoords.x = rand(5)
+  result.sprite.frameCoords.y =
+    if rand(10) > 8:
+      1
+    else:
+      0
 
 Grass.renderAsNodeChild:
   this.sprite.render(ctx)
