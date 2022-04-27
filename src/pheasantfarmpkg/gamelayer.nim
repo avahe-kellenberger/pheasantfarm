@@ -116,7 +116,7 @@ proc spawnEgg(this: GameLayer, kind: EggKind) =
   let egg = newEgg(kind)
   egg.setLocation vector(
     rand((this.grid.bounds.left + this.grid.tileSize + 4) .. (this.grid.bounds.right - this.grid.tileSize - 4)),
-    rand((this.grid.bounds.top + this.grid.tileSize + 4) .. (this.grid.bounds.bottom - this.grid.tileSize - 4))
+    rand((this.grid.bounds.top + this.grid.tileSize + 4) .. (this.grid.bounds.bottom - this.grid.tileSize * 2 - 4))
   )
 
   egg.addCollisionListener(
@@ -214,5 +214,13 @@ method update*(this: GameLayer, deltaTime: float, onChildUpdate: proc(child: Nod
   this.updateTimer(deltaTime)
 
 when defined(debug):
-  GameLayer.renderAsChildOf(Layer):
-    this.grid.render(ctx, Game.scene.camera)
+  method render*(this: GameLayer, ctx: Target, callback: proc() = nil) =
+    let camera = Game.scene.camera
+    this.grid.render(ctx, camera)
+    let mouseInWorldSpace = camera.screenToWorldCoord(Input.mouseLocation, this.z - camera.z)
+    let tileOpt = this.grid.worldCoordToTile(mouseInWorldSpace)
+    if tileOpt.isSome():
+      let tile = tileOpt.get()
+      this.grid.highlightTile(ctx, tile)
+
+    procCall Layer(this).render(ctx, callback)
