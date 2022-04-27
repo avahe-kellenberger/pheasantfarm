@@ -3,8 +3,6 @@ import shade
 import ui
 export ui
 
-const scale = vector(1.5, 1.5)
-
 # TODO: Need some sort of text element (like TextBox)
 type
   Menu* = ref object of Node
@@ -15,6 +13,7 @@ type
 
 proc initMenu*(menu: Menu) =
   initNode(Node(menu), {LayerObjectFlags.RENDER})
+  menu.visible = true
 
 proc newMenu*(): Menu =
   result = Menu()
@@ -31,7 +30,7 @@ proc elementContainsPoint*(this: Menu, element: UIElement, point: Vector): bool 
   ## Only works for elements inside the menu,
   ## because element positions are relative to the menu.
   let
-    elementLocInMenu = element.getLocationInParent(this.size)
+    elementLocInMenu = getLocationInParent(element.position, this.size)
     pointRelToElement = abs(elementLocInMenu - point)
     halfElementSize = element.size * 0.5
   return halfElementSize.x >= pointRelToElement.x and halfElementSize.y >= pointRelToElement.y

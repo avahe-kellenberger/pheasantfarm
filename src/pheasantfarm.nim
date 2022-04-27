@@ -145,7 +145,7 @@ startMenu.setLocation(gamestate.resolution * 0.5)
 # Center the menu if the screen size changes.
 gamestate.onResolutionChanged:
   startMenu.size = gamestate.resolution
-  startMenu.setLocation(startMenu.getLocationInParent(gamestate.resolution))
+  startMenu.setLocation(getLocationInParent(startMenu.position, gamestate.resolution))
 
 let menuClickSound = loadSoundEffect("./assets/sfx/menu-click.wav")
 

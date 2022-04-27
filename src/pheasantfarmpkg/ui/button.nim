@@ -3,25 +3,21 @@ import shade
 import ui
 
 type
-  Button* = ref object
-    position*: Position
+  Button* = ref object of UIElement
     sprite*: Sprite
-    scale*: Vector
     onClickHandler*: proc()
 
 proc newButton*(imagePath: string): Button =
   result = Button()
   let (_, image) = Images.loadImage(imagePath, FILTER_NEAREST)
   result.sprite = newSprite(image)
-  result.scale = VECTOR_ONE
+  result.size = result.sprite.size
 
 template onClick*(this: Button, body: untyped) =
   this.onClickHandler = proc() = body
 
-proc size*(this: Button): Vector =
-  return this.sprite.size
-
-proc render*(this: Button, ctx: Target) =
+method render*(this: Button, ctx: Target) =
+  procCall UIElement(this).render(ctx)
   this.sprite.render(ctx)
 
   when defined(renderUIBounds):
