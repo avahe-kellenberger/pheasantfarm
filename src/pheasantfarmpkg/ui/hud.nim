@@ -1,24 +1,66 @@
 import shade
 
+import ../egg
+
 import menu, ui, button, label
 export ui, button, label
 
 type HUD* = ref object of Panel
-  eggText: Label
+  eggTextWhite: Label
+  eggTextGray: Label
+  eggTextBlue: Label
+  eggTextYellow: Label
 
 proc newHUD*(): HUD =
   result = HUD()
   initPanel(Panel(result))
 
-  let eggImage = newButton("./assets/egg.png")
-  eggImage.scale = vector(6.0, 6.0)
-  result.add(eggImage)
+  let whiteEggImage = newButton(newSprite(getEggImage(), 4, 1))
+  whiteEggImage.scale = vector(6.0, 6.0)
+  result.add(whiteEggImage)
 
-  result.eggText = newLabel("0")
-  result.eggText.position.x = eggImage.position.x + 0.05
-  result.eggText.position.y = eggImage.position.y
-  result.add(result.eggText)
+  result.eggTextWhite = newLabel("0")
+  result.eggTextWhite.position.x = whiteEggImage.position.x + 0.05
+  result.add(result.eggTextWhite)
 
-proc setEggCount*(this: HUD, count: int) =
-  this.eggText.setText($count)
+  let grayEggImage = newButton(newSprite(getEggImage(), 4, 1))
+  grayEggImage.position.x = whiteEggImage.position.x + 0.12
+  grayEggImage.sprite.frameCoords.x = ord(EggKind.GRAY)
+  grayEggImage.scale = vector(6.0, 6.0)
+  result.add(grayEggImage)
+
+  result.eggTextGray = newLabel("0")
+  result.eggTextGray.position.x = grayEggImage.position.x + 0.05
+  result.add(result.eggTextGray)
+
+  let blueEggImage = newButton(newSprite(getEggImage(), 4, 1))
+  blueEggImage.position.x = grayEggImage.position.x + 0.12
+  blueEggImage.sprite.frameCoords.x = ord(EggKind.BLUE)
+  blueEggImage.scale = vector(6.0, 6.0)
+  result.add(blueEggImage)
+
+  result.eggTextBlue = newLabel("0")
+  result.eggTextBlue.position.x = blueEggImage.position.x + 0.05
+  result.add(result.eggTextBlue)
+
+  let yellowEggImage = newButton(newSprite(getEggImage(), 4, 1))
+  yellowEggImage.position.x = blueEggImage.position.x + 0.12
+  yellowEggImage.sprite.frameCoords.x = ord(EggKind.YELLOW)
+  yellowEggImage.scale = vector(6.0, 6.0)
+  result.add(yellowEggImage)
+
+  result.eggTextYellow = newLabel("0")
+  result.eggTextYellow.position.x = yellowEggImage.position.x + 0.05
+  result.add(result.eggTextYellow)
+
+proc setEggCount*(this: HUD, kind: EggKind, count: int) =
+  case kind:
+    of EggKind.WHITE:
+      this.eggTextWhite.setText($count)
+    of EggKind.GRAY:
+      this.eggTextGray.setText($count)
+    of EggKind.BLUE:
+      this.eggTextBlue.setText($count)
+    of EggKind.YELLOW:
+      this.eggTextYellow.setText($count)
 

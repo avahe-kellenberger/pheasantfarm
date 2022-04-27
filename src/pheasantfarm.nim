@@ -1,5 +1,5 @@
 import shade
-import std/random
+import std/[tables, random]
 
 import pheasantfarmpkg/[pheasant, fences, gamelayer]
 import pheasantfarmpkg/ui/startmenu as startMenuModule
@@ -144,7 +144,7 @@ startMenu.startButton.onClick:
 startMenu.quitButton.onClick:
   Game.stop()
 
-var eggCount = 0
+var eggCount = initCountTable[EggKind]()
 
 let pickupSound = loadSoundEffect("./assets/sfx/pick-up.wav")
 
@@ -152,11 +152,12 @@ proc onEggCollected(this: Egg) =
   pickupSound.play()
   grid.removePhysicsBodies(this)
   layer.removeChild(this)
-  inc eggCount
-  hud.setEggCount(eggCount)
+
+  eggCount.inc(this.eggKind)
+  hud.setEggCount(this.eggKind, eggCount[this.eggKind])
 
 proc spawnEgg() =
-  let egg = newEgg()
+  let egg = newEgg(rand(EggKind.low .. EggKind.high))
   egg.setLocation(
     vector(
       rand((grid.bounds.left + grid.tileSize + 4) .. (grid.bounds.right - grid.tileSize - 4)),
