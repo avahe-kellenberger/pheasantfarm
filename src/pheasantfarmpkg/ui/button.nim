@@ -8,12 +8,15 @@ type
     onClickHandler*: proc()
     scale*: Vector
 
-proc newButton*(imagePath: string): Button =
+proc newButton*(sprite: Sprite): Button =
   result = Button()
-  let (_, image) = Images.loadImage(imagePath, FILTER_NEAREST)
-  result.sprite = newSprite(image)
+  result.sprite = sprite
   result.size = result.sprite.size
   result.scale = VECTOR_ONE
+
+proc newButton*(imagePath: string): Button =
+  let (_, image) = Images.loadImage(imagePath, FILTER_NEAREST)
+  return newButton(newSprite(image))
 
 template onClick*(this: Button, body: untyped) =
   this.onClickHandler = proc() = body
