@@ -1,13 +1,8 @@
-import shade, safeset
-
-import seq2d
-
+import shade, safeset, seq2d
 import options
+import ui/fontloader
 
 export safeset, options
-
-# TODO: Fix this later
-var fontIndex = -1
 
 type
   Tile* = Safeset[PhysicsBody]
@@ -109,11 +104,7 @@ proc highlightTile*(this: Grid, ctx: Target, tileX, tileY: int, color: Color = P
       GREEN
   )
 
-  if fontIndex == -1:
-    let (i, font) = Fonts.load("./assets/fonts/kennypixel.ttf", 72)
-    fontIndex = i
-
-  let textbox = newTextBox(Fonts[fontIndex], $numObjectsOnTile, renderFilter = FILTER_NEAREST)
+  let textbox = newTextBox(getFont(), $numObjectsOnTile, renderFilter = FILTER_NEAREST)
   textbox.scale = vector(0.08, 0.08)
   textbox.setLocation(vector(left, top) + vector(this.tileSize * 0.5, this.tileSize * 0.5))
   textbox.render(ctx)

@@ -1,7 +1,7 @@
 import shade
 
-import menu, ui, button
-export ui, button
+import menu, ui, button, label
+export ui, button, label
 
 type
   StartMenu* = ref object of Menu
@@ -33,6 +33,10 @@ proc newStartMenu*(): StartMenu =
   result.add(result.statsButton)
   result.add(result.settingsButton)
   result.add(result.quitButton)
+
+  let title = newLabel("Pheasant Pharm")
+  title.position.y = -0.60
+  result.add(title)
 
   let this = result
   Input.addMousePressedEventListener(

@@ -3,7 +3,6 @@ import shade
 import ui
 export ui
 
-# TODO: Need some sort of text element (like TextBox)
 type
   Menu* = ref object of Node
     visible*: bool
