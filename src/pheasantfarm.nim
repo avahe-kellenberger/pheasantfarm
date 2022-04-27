@@ -100,9 +100,10 @@ Game.hud = newLayer()
 
 # HUD
 let hud = newHUD()
+hud.setTimeRemaining(8)
+hud.setMoney(21324)
 Game.hud.addChild(hud)
 hud.visible = false
-hud.size = vector(gamestate.resolution.x, gamestate.resolution.y * 0.1)
 hud.setLocation(
   getLocationInParent(hud.position, gamestate.resolution) +
   vector(gamestate.resolution.x * 0.5, gamestate.resolution.y * 0.05)
@@ -123,7 +124,6 @@ gamestate.onResolutionChanged:
     getLocationInParent(startMenu.position, gamestate.resolution) + gamestate.resolution * 0.5
   )
 
-  hud.size = vector(gamestate.resolution.x, gamestate.resolution.y * 0.1)
   hud.setLocation(
     getLocationInParent(hud.position, gamestate.resolution) +
     vector(gamestate.resolution.x * 0.5, gamestate.resolution.y * 0.05)

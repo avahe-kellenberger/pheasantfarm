@@ -18,6 +18,9 @@ proc newButton*(imagePath: string): Button =
   let (_, image) = Images.loadImage(imagePath, FILTER_NEAREST)
   return newButton(newSprite(image))
 
+template size*(this: Button): Vector =
+  this.sprite.size
+
 template onClick*(this: Button, body: untyped) =
   this.onClickHandler = proc() = body
 
