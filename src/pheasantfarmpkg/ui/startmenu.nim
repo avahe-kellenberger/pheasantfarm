@@ -4,7 +4,7 @@ import menu, ui, button, label
 export ui, button, label
 
 type
-  StartMenu* = ref object of Menu
+  StartMenu* = ref object of Panel
     startButton*: Button
     statsButton*: Button
     settingsButton*: Button
@@ -16,7 +16,11 @@ iterator buttons*(this: StartMenu): Button =
 
 proc newStartMenu*(): StartMenu =
   result = StartMenu()
-  initMenu(Menu(result))
+  initPanel(Panel(result))
+
+  let title = newLabel("Pheasant Pharm")
+  title.position.y = -0.60
+  result.add(title)
 
   result.startButton = newButton("./assets/start.png")
   result.startButton.position.y = -0.40
@@ -33,10 +37,6 @@ proc newStartMenu*(): StartMenu =
   result.add(result.statsButton)
   result.add(result.settingsButton)
   result.add(result.quitButton)
-
-  let title = newLabel("Pheasant Pharm")
-  title.position.y = -0.60
-  result.add(title)
 
   let this = result
   Input.addMousePressedEventListener(

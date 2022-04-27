@@ -3,6 +3,7 @@ import std/random
 
 import pheasantfarmpkg/[pheasant, fences, gamelayer]
 import pheasantfarmpkg/ui/startmenu as startMenuModule
+import pheasantfarmpkg/ui/hud as hudModule
 import pheasantfarmpkg/player as playerModule
 import pheasantfarmpkg/grid as gridModule
 import pheasantfarmpkg/egg as eggModule
@@ -47,24 +48,6 @@ for i in 0..250:
     Grass(this).sprite.render(ctx)
 
   layer.addChild(grass)
-
-let egg = newEgg()
-egg.setLocation(
-  vector(
-    rand((grid.bounds.left + grid.tileSize + 4) .. (grid.bounds.right - grid.tileSize - 4)),
-    rand((grid.bounds.top + grid.tileSize + 4) .. (grid.bounds.bottom - grid.tileSize - 4))
-  )
-)
-
-egg.addCollisionListener(
-  proc(this, other: PhysicsBody, r: CollisionResult, gravityNormal: Vector): bool =
-    if other of Player:
-      grid.removePhysicsBodies(egg)
-      layer.removeChild(egg)
-)
-
-layer.addChild(egg)
-grid.addPhysicsBodies(egg)
 
 let targetedPheasant = createNewPheasant()
 targetedPheasant.setLocation(
@@ -113,6 +96,86 @@ camera.setTrackedNode(player)
 camera.setTrackingEasingFunction(easeOutQuadratic)
 camera.completionRatioPerFrame = 0.05
 
+Game.hud = newLayer()
+
+# HUD
+let hud = newHUD()
+Game.hud.addChild(hud)
+hud.visible = false
+hud.size = vector(gamestate.resolution.x, gamestate.resolution.y * 0.1)
+hud.setLocation(
+  getLocationInParent(hud.position, gamestate.resolution) +
+  vector(gamestate.resolution.x * 0.5, gamestate.resolution.y * 0.05)
+)
+
+# Set up the start menu
+let startMenu = newStartMenu()
+Game.hud.addChild(startMenu)
+startMenu.size = gamestate.resolution
+startMenu.setLocation(
+  getLocationInParent(startMenu.position, gamestate.resolution) + gamestate.resolution * 0.5
+)
+
+# Center the menu if the screen size changes.
+gamestate.onResolutionChanged:
+  startMenu.size = gamestate.resolution
+  startMenu.setLocation(
+    getLocationInParent(startMenu.position, gamestate.resolution) + gamestate.resolution * 0.5
+  )
+
+  hud.size = vector(gamestate.resolution.x, gamestate.resolution.y * 0.1)
+  hud.setLocation(
+    getLocationInParent(hud.position, gamestate.resolution) +
+    vector(gamestate.resolution.x * 0.5, gamestate.resolution.y * 0.05)
+  )
+
+let menuClickSound = loadSoundEffect("./assets/sfx/menu-click.wav")
+
+startMenu.startButton.onClick:
+  menuClickSound.play()
+  Game.hud.removeChild(startMenu)
+  player.isControllable = true
+  startMenu.visible = false
+
+  # TODO: Generate level,
+  # Add in-game HUD
+  hud.visible = true
+
+startMenu.quitButton.onClick:
+  Game.stop()
+
+var eggCount = 0
+
+let pickupSound = loadSoundEffect("./assets/sfx/pick-up.wav")
+
+proc onEggCollected(this: Egg) =
+  pickupSound.play()
+  grid.removePhysicsBodies(this)
+  layer.removeChild(this)
+  inc eggCount
+  hud.setEggCount(eggCount)
+
+proc spawnEgg() =
+  let egg = newEgg()
+  egg.setLocation(
+    vector(
+      rand((grid.bounds.left + grid.tileSize + 4) .. (grid.bounds.right - grid.tileSize - 4)),
+      rand((grid.bounds.top + grid.tileSize + 4) .. (grid.bounds.bottom - grid.tileSize - 4))
+    )
+  )
+
+  egg.addCollisionListener(
+    proc(this, other: PhysicsBody, r: CollisionResult, gravityNormal: Vector): bool =
+      if other of Player:
+        Egg(this).onEggCollected()
+  )
+
+  layer.addChild(egg)
+  grid.addPhysicsBodies(egg)
+
+for i in 0..8:
+  spawnEgg()
+
 Input.addKeyEventListener(
   K_ESCAPE,
   proc(key: Keycode, state: KeyState) =
@@ -133,33 +196,6 @@ when not defined(debug):
     discard capture fadeInMusic(someSong, 3.0, 0.25)
   else:
     echo "Error playing music: " & err.msg
-
-# Set up the start menu
-
-let startMenu = newStartMenu()
-Game.hud = newLayer()
-Game.hud.addChild(startMenu)
-startMenu.size = gamestate.resolution
-startMenu.setLocation(gamestate.resolution * 0.5)
-
-# Center the menu if the screen size changes.
-gamestate.onResolutionChanged:
-  startMenu.size = gamestate.resolution
-  startMenu.setLocation(getLocationInParent(startMenu.position, gamestate.resolution))
-
-let menuClickSound = loadSoundEffect("./assets/sfx/menu-click.wav")
-
-startMenu.startButton.onClick:
-  menuClickSound.play()
-  Game.hud.removeChild(startMenu)
-  player.isControllable = true
-  startMenu.visible = false
-
-  # TODO: Generate level,
-  # Add in-game HUD
-
-startMenu.quitButton.onClick:
-  Game.stop()
 
 Game.start()
 
