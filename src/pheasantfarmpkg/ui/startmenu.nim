@@ -34,10 +34,10 @@ proc newStartMenu*(): StartMenu =
   result.quitButton.position.y = 0.20
   result.quitButton.scale = scale
 
-  result.addButton(result.startButton)
-  result.addButton(result.statsButton)
-  result.addButton(result.settingsButton)
-  result.addButton(result.quitButton)
+  result.add(result.startButton)
+  result.add(result.statsButton)
+  result.add(result.settingsButton)
+  result.add(result.quitButton)
 
   let this = result
   Input.addMousePressedEventListener(
