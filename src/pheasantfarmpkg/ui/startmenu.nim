@@ -20,6 +20,10 @@ proc newStartMenu*(): StartMenu =
   title.position.y = -0.60
   result.add(title)
 
+  let phrenzy = newButton("./assets/phrenzy.png")
+  phrenzy.position.y = -0.35
+  result.add(phrenzy)
+
   result.startButton = newButton("./assets/start.png")
   result.startButton.position.y = -0.10
 
