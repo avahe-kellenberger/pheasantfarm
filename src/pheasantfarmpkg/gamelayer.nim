@@ -33,7 +33,7 @@ type
     isTimeCountingDown*: bool
     eggCount: CountTable[EggKind]
 
-proc spawnPhesant(this: GameLayer)
+proc spawnPhesant(this: GameLayer, kind: PheasantKind)
 proc spawnEgg(this: GameLayer, kind: EggKind)
 proc onEggCollected(this: GameLayer, egg: Egg)
 
@@ -100,11 +100,12 @@ proc newGameLayer*(grid: Grid): GameLayer =
     )
     result.addChild(grass)
 
-  for i in 1..numStartingPheasants:
-    this.spawnPhesant()
+  for i in 1..<numStartingPheasants:
+    this.spawnPhesant(PheasantKind.COMMON)
+  this.spawnPhesant(PheasantKind.GRAY_PEACOCK)
 
-proc spawnPhesant(this: GameLayer) =
-  let pheasant = createNewPheasant()
+proc spawnPhesant(this: GameLayer, kind: PheasantKind) =
+  let pheasant = createNewPheasant(kind)
   pheasant.setLocation(
     this.grid.bounds.center +
     vector(rand(-120.0 .. 120.0), rand(-80.0 .. 80.0))
@@ -136,6 +137,17 @@ proc onEggCollected(this: GameLayer, egg: Egg) =
   this.eggCount.inc(egg.eggKind)
   this.hud.setEggCount(egg.eggKind, this.eggCount[egg.eggKind])
 
+proc getEggKind*(kind: PheasantKind): EggKind =
+  case kind:
+    of PheasantKind.COMMON:
+      return EggKind.WHITE
+    of PheasantKind.GRAY_PEACOCK:
+      return EggKind.GRAY
+    of PheasantKind.BLUE_EARED:
+      return EggKind.BLUE
+    of PheasantKind.GOLDEN:
+      return EggKind.GOLDEN
+
 proc loadNewDay*(this: GameLayer) =
   inc this.day
   this.hud.setDay(this.day)
@@ -144,7 +156,7 @@ proc loadNewDay*(this: GameLayer) =
   this.hud.setTimeRemaining(dayLengthInSeconds)
 
   for pheasant in this.pheasants:
-    this.spawnEgg(EggKind.WHITE)
+    this.spawnEgg(getEggKind(pheasant.pheasantKind))
 
   this.player.isControllable = true
 

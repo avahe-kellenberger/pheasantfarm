@@ -12,7 +12,7 @@ type HUD* = ref object of Panel
   eggTextWhite: Label
   eggTextGray: Label
   eggTextBlue: Label
-  eggTextYellow: Label
+  eggTextGolden: Label
 
 proc setEggCount*(this: HUD, kind: EggKind, count: int)
 
@@ -57,18 +57,18 @@ proc newHUD*(): HUD =
 
   const distBetweenEggIcons = 0.12
 
-  result.eggTextYellow = newLabel("", WHITE)
-  result.eggTextYellow.position.x = 0.9
-  result.add(result.eggTextYellow)
+  result.eggTextGolden = newLabel("", WHITE)
+  result.eggTextGolden.position.x = 0.9
+  result.add(result.eggTextGolden)
 
-  let yellowEggImage = newButton(newSprite(getEggImage(), 4, 1))
-  yellowEggImage.position.x = result.eggTextYellow.position.x - distBetweenEggIcons
-  yellowEggImage.sprite.frameCoords.x = ord(EggKind.YELLOW)
-  yellowEggImage.scale = vector(6.0, 6.0)
-  result.add(yellowEggImage)
+  let goldenEggImage = newButton(newSprite(getEggImage(), 4, 1))
+  goldenEggImage.position.x = result.eggTextGolden.position.x - distBetweenEggIcons
+  goldenEggImage.sprite.frameCoords.x = ord(EggKind.GOLDEN)
+  goldenEggImage.scale = vector(6.0, 6.0)
+  result.add(goldenEggImage)
 
   result.eggTextBlue = newLabel("", WHITE)
-  result.eggTextBlue.position.x = yellowEggImage.position.x - distBetweenEggIcons
+  result.eggTextBlue.position.x = goldenEggImage.position.x - distBetweenEggIcons
   result.add(result.eggTextBlue)
 
   let blueEggImage = newButton(newSprite(getEggImage(), 4, 1))
@@ -120,6 +120,6 @@ proc setEggCount*(this: HUD, kind: EggKind, count: int) =
       this.eggTextGray.setText(formatInt(count, 2))
     of EggKind.BLUE:
       this.eggTextBlue.setText(formatInt(count, 2))
-    of EggKind.YELLOW:
-      this.eggTextYellow.setText(formatInt(count, 2))
+    of EggKind.GOLDEN:
+      this.eggTextGolden.setText(formatInt(count, 2))
 

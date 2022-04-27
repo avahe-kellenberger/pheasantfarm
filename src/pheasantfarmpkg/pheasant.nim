@@ -6,14 +6,24 @@ randomize()
 
 const speed = 16.0
 
-var pheasantImageId = -1
+var
+  commonPheasantImageId = -1
+  grayPheasantImageId = -1
+  bluePheasantImageId = -1
+  goldenPheasantImageId = -1
 
 type
+  PheasantKind* {.pure.} = enum
+    COMMON
+    GRAY_PEACOCK
+    BLUE_EARED
+    GOLDEN
   PheasantAction* = enum
     IDLE,
     WALKING,
     EATING
   Pheasant* = ref object of PhysicsBody
+    pheasantKind*: PheasantKind
     animationPlayer*: AnimationPlayer
     sprite*: Sprite
     currentAction: PheasantAction
@@ -104,11 +114,34 @@ proc createEatingAnimation(this: Pheasant): Animation =
   eatingAnim.addNewAnimationTrack(this.sprite.frameCoords, animCoordFrames)
   return eatingAnim
 
-proc createPheasantSprite(): Sprite =
-  if pheasantImageId == -1:
-    let (id, _) = Images.loadImage("./assets/common_pheasant.png", FILTER_NEAREST)
-    pheasantImageId = id
-  result = newSprite(Images[pheasantImageId], 4, 1)
+proc createPheasantSprite(kind: PheasantKind): Sprite =
+  var imageId = -1
+  case kind:
+    of COMMON:
+      if commonPheasantImageId == -1:
+        let (id, _) = Images.loadImage("./assets/common_pheasant.png", FILTER_NEAREST)
+        commonPheasantImageId = id
+      imageId = commonPheasantImageId
+
+    of GRAY_PEACOCK:
+      if grayPheasantImageId == -1:
+        let (id, _) = Images.loadImage("./assets/grey_peacock_pheasant.png", FILTER_NEAREST)
+        grayPheasantImageId = id
+      imageId = grayPheasantImageId
+
+    of BLUE_EARED:
+      if bluePheasantImageId == -1:
+        let (id, _) = Images.loadImage("./assets/blue_eared_pheasant.png", FILTER_NEAREST)
+        bluePheasantImageId = id
+      imageId = bluePheasantImageId
+
+    of GOLDEN:
+      if goldenPheasantImageId == -1:
+        let (id, _) = Images.loadImage("./assets/golden_pheasant.png", FILTER_NEAREST)
+        goldenPheasantImageId = id
+      imageId = goldenPheasantImageId
+
+  result = newSprite(Images[imageId], 4, 1)
 
 proc randomAction(): PheasantAction =
   rand(PheasantAction.low .. PheasantAction.high)
@@ -148,12 +181,12 @@ proc createAnimPlayer(this: Pheasant): AnimationPlayer =
 proc createCollisionShape(): CollisionShape =
   result = newCollisionShape(newAABB(-4, -2, 4, 0))
 
-proc createNewPheasant*(): Pheasant =
-  result = Pheasant()
+proc createNewPheasant*(kind: PheasantKind): Pheasant =
+  result = Pheasant(pheasantKind: kind)
   initPhysicsBody(PhysicsBody(result))
   result.scale = vector(0.75, 0.75)
 
-  result.sprite = createPheasantSprite()
+  result.sprite = createPheasantSprite(kind)
   result.sprite.offset.y = -result.sprite.size.y * 0.5
 
   result.animationPlayer = createAnimPlayer(result)

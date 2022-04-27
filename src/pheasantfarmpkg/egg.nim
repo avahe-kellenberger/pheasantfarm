@@ -13,7 +13,7 @@ type
     WHITE
     GRAY
     BLUE
-    YELLOW
+    GOLDEN
   Egg* = ref object of PhysicsBody
     sprite*: Sprite
     eggKind*: EggKind
