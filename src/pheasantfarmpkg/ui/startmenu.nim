@@ -1,6 +1,6 @@
 import shade
 
-import menu, ui, button, label, fontloader
+import menu, ui, button, label
 export ui, button, label
 
 type
