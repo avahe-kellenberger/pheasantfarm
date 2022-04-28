@@ -5,7 +5,6 @@ import ui
 type
   Button* = ref object of UIElement
     sprite*: Sprite
-    onClickHandler*: proc()
     scale*: Vector
 
 proc initButton*(button: Button) =
@@ -24,9 +23,6 @@ proc newButton*(imagePath: string): Button =
 
 template size*(this: Button): Vector =
   this.sprite.size
-
-template onClick*(this: Button, body: untyped) =
-  this.onClickHandler = proc() = body
 
 Button.renderAsChildOf(UIElement):
   ctx.scale(this.scale.x, this.scale.y):

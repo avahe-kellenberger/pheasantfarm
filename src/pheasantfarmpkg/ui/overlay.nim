@@ -2,7 +2,7 @@ import shade
 
 import strformat
 
-import panel, ui, label
+import panel, ui, label, format
 export ui, label
 
 const orangeColor = newColor(179, 89, 0)
@@ -17,7 +17,7 @@ proc setDay*(this: Overlay, day: int)
 proc createFadeOutAnimation(this: Overlay): Animation
 proc createFadeInAnimation(this: Overlay): Animation
 
-proc newOverlay*(onFadeInFinished: proc()): Overlay =
+proc newOverlay*(onFadeOutFinished: proc(), onFadeInFinished: proc()): Overlay =
   result = Overlay()
   initPanel(Panel(result))
 
@@ -31,6 +31,8 @@ proc newOverlay*(onFadeInFinished: proc()): Overlay =
   let this = result
 
   let fadeOutAnim = result.createFadeOutAnimation()
+  fadeOutAnim.onFinished:
+    onFadeOutFinished()
   result.animationPlayer.addAnimation("fade-out", fadeOutAnim)
 
   let fadeInAnim = result.createFadeInAnimation()
@@ -86,10 +88,6 @@ proc createFadeInAnimation(this: Overlay): Animation =
   anim.addNewAnimationTrack(this.currentColor, frames)
   anim.addNewAnimationTrack(this.dayLabel.visible, visibilityFrames)
   return anim
-
-proc formatInt(num, digits: int): string =
-  let maxValue = 10 ^ digits - 1
-  result = alignString($min(num, maxValue), digits, '/', '0')
 
 proc setDay*(this: Overlay, day: int) =
   this.dayLabel.setText("Day " & formatInt(day, 2))

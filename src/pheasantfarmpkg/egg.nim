@@ -1,5 +1,7 @@
 import shade
 
+import std/tables
+
 var eggImageId = -1
 
 proc getEggImage*(): Image =
@@ -18,6 +20,13 @@ type
     sprite*: Sprite
     eggKind*: EggKind
 
+const EGG_PRICES* = {
+  EggKind.WHITE: 1,
+  EggKind.GRAY: 5,
+  EggKind.BLUE: 20,
+  EggKind.GOLDEN: 50
+}.toTable()
+
 proc newEgg*(eggKind: EggKind = EggKind.WHITE): Egg =
   result = Egg(kind: PhysicsBodyKind.STATIC)
   initPhysicsBody(PhysicsBody(result))
@@ -30,6 +39,10 @@ proc newEgg*(eggKind: EggKind = EggKind.WHITE): Egg =
   result.collisionShape = newCollisionShape(
     newAABB(-5, -6, 5, 6).getScaledInstance(result.sprite.scale)
   )
+
+proc calcTotal*(eggCount: CountTable[EggKind]): int =
+  for kind, count in eggCount.pairs():
+    result += count * EGG_PRICES[kind]
 
 Egg.renderAsChildOf(PhysicsBody):
   this.sprite.render(ctx)

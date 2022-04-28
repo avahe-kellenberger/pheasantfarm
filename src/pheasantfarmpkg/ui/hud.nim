@@ -2,7 +2,7 @@ import shade
 
 import strformat
 
-import panel, ui, button, label, ../egg
+import panel, ui, button, label, format, ../egg
 export ui, button, label
 
 type HUD* = ref object of Panel
@@ -98,10 +98,6 @@ proc newHUD*(): HUD =
 
   for eggKind in EggKind.low .. EggKind.high:
     result.setEggCount(eggKind, 0)
-
-proc formatInt(num, digits: int): string =
-  let maxValue = 10 ^ digits - 1
-  result = alignString($min(num, maxValue), digits, '/', '0')
 
 proc setDay*(this: HUD, day: int) =
   this.dayLabel.setText(formatInt(day, 2))

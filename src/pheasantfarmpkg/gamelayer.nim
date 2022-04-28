@@ -5,14 +5,16 @@ import shade
 import egg as eggModule
 import grid as gridModule
 import ui/hud as hudModule
+import ui/shop as shopModule
 import grass as grassModule
 import player as playerModule
 import pheasant as pheasantModule
 import ui/overlay as overlayModule
+import ui/summary as summaryModule
 
 const
   numStartingPheasants = 9
-  dayLengthInSeconds = 30
+  dayLengthInSeconds = 5
   fadeInDuration = 1.0
 
 var
@@ -24,6 +26,8 @@ var
 type
   GameLayer* = ref object of Layer
     hud*: HUD
+    summary*: Summary
+    shop*: Shop
     overlay*: Overlay
 
     grid: Grid
@@ -39,7 +43,9 @@ type
     eggCount: CountTable[EggKind]
 
 proc startNewDay*(this: GameLayer)
+proc loadNewDay*(this: GameLayer)
 proc openShop(this: GameLayer)
+proc openSummary(this: GameLayer)
 proc spawnPhesant(this: GameLayer, kind: PheasantKind)
 proc spawnEgg(this: GameLayer, kind: EggKind)
 proc onEggCollected(this: GameLayer, egg: Egg)
@@ -63,7 +69,20 @@ proc newGameLayer*(grid: Grid): GameLayer =
   countdownSound = loadSoundEffect("./assets/sfx/countdown.wav")
   timeUpSound = loadSoundEffect("./assets/sfx/time-up.wav")
 
-  # HUD
+  let this = result
+  result.overlay = newOverlay(
+    proc () = this.openSummary,
+    proc () = this.startNewDay
+  )
+  result.overlay.size = gamestate.resolution
+  result.overlay.visible = false
+  this.overlay.setLocation(
+    getLocationInParent(this.overlay.position, gamestate.resolution) +
+    gamestate.resolution * 0.5
+  )
+
+  Game.hud.addChild(result.overlay)
+
   result.hud = newHUD()
   result.hud.setTimeRemaining(0)
   result.hud.setMoney(0)
@@ -74,21 +93,25 @@ proc newGameLayer*(grid: Grid): GameLayer =
   )
   Game.hud.addChild(result.hud)
 
-  let this = result
-
-  result.overlay = newOverlay(
-    proc () = this.startNewDay
+  result.shop = newShop(
+    proc() =
+      this.loadNewDay()
   )
-  result.overlay.size = gamestate.resolution
-  result.overlay.visible = false
-  result.overlay.setLocation(
-    getLocationInParent(result.overlay.position, gamestate.resolution) +
-    gamestate.resolution * 0.5
+  result.shop.visible = false
+  result.shop.setLocation(
+    getLocationInParent(this.shop.position, gamestate.resolution) +
+    vector(gamestate.resolution.x * 0.5, gamestate.resolution.y * 0.35)
   )
+  Game.hud.addChild(result.shop)
 
-  Game.hud.addChild(result.overlay)
+  result.summary = newSummary(proc() = this.openShop)
+  result.summary.visible = false
+  result.summary.setLocation(
+    getLocationInParent(this.summary.position, gamestate.resolution) +
+    vector(gamestate.resolution.x * 0.5, gamestate.resolution.y * 0.35)
+  )
+  Game.hud.addChild(result.summary)
 
-  # Center the HUD and overlay if the screen size changes.
   gamestate.onResolutionChanged:
     this.hud.setLocation(
       getLocationInParent(this.hud.position, gamestate.resolution) +
@@ -100,6 +123,16 @@ proc newGameLayer*(grid: Grid): GameLayer =
       gamestate.resolution * 0.5
     )
     this.overlay.size = gamestate.resolution
+
+    this.shop.setLocation(
+      getLocationInParent(this.shop.position, gamestate.resolution) +
+      vector(gamestate.resolution.x * 0.5, gamestate.resolution.y * 0.35)
+    )
+
+    this.summary.setLocation(
+      getLocationInParent(this.summary.position, gamestate.resolution) +
+      vector(gamestate.resolution.x * 0.5, gamestate.resolution.y * 0.35)
+    )
 
   result.grid = grid
   result.colliders = initHashSet[PhysicsBody]()
@@ -212,8 +245,25 @@ proc loadNewDay*(this: GameLayer) =
   if this.overlay.visible:
     this.fadeIn()
 
+proc updateHUDValues(this: GameLayer) =
+  this.hud.setMoney(this.money)
+  for kind in EggKind.low .. EggKind.high:
+    this.hud.setEggCount(kind, this.eggCount[kind])
+
+proc openSummary(this: GameLayer) =
+  this.summary.setEggCount(this.eggCount)
+
+  let total = eggModule.calcTotal(this.eggCount)
+  this.summary.setTotal(total)
+
+  this.eggCount.clear()
+  this.money += total
+  this.updateHUDValues()
+
+  this.summary.visible = true
+
 proc openShop(this: GameLayer) =
-  this.loadNewDay()
+  this.shop.visible = true
 
 method visitChildren*(this: GameLayer, handler: proc(child: Node)) =
   var childrenSeq = this.childIterator.toSeq
@@ -261,7 +311,6 @@ proc onTimerEnd(this: GameLayer) =
 
   this.player.isControllable = false
   this.isTimeCountingDown = false
-  this.openShop()
 
 template onSecondCountdown(this: GameLayer, time: int) =
   this.hud.setTimeRemaining(time)
@@ -279,7 +328,7 @@ proc updateTimer(this: GameLayer, deltaTime: float) =
     if oldTimeInSeconds != newTimeInSeconds:
       this.onSecondCountdown(newTimeInSeconds)
 
-    if not this.overlay.visible and this.timeRemaining <= 15:
+    if not this.overlay.visible and this.timeRemaining <= 14.5:
       this.overlay.visible = true
       this.overlay.animationPlayer.play("fade-out")
       this.overlay.animationPlayer.update(15 - this.timeRemaining)

@@ -10,17 +10,30 @@ type
     position*: Position
     elements: seq[UIElement]
 
-proc initPanel*(panel: Panel) =
-  initNode(Node(panel), {LayerObjectFlags.RENDER})
-  panel.visible = true
-
-proc newPanel*(): Panel =
-  result = Panel()
-  initPanel(result)
+proc elementContainsPoint*(this: Panel, element: UIElement, point: Vector): bool
 
 iterator elements*(this: Panel): UIElement =
   for element in this.elements:
     yield element
+
+proc initPanel*(panel: Panel) =
+  initNode(Node(panel), {LayerObjectFlags.RENDER})
+  panel.visible = true
+
+  Input.addMousePressedEventListener(
+    proc(button: int, state: ButtonState, x, y, clickCount: int) =
+      if not panel.visible:
+        return
+
+      let clickedCoord = vector(x, y) - panel.getLocation()
+      for element in panel.elements:
+        if element.onClickHandler != nil and panel.elementContainsPoint(element, clickedCoord):
+          element.onClickHandler()
+  )
+
+proc newPanel*(): Panel =
+  result = Panel()
+  initPanel(result)
 
 proc add*(this: Panel, element: UIElement) =
   this.elements.add(element)
