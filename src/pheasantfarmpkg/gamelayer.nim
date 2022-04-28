@@ -13,6 +13,7 @@ import ui/overlay as overlayModule
 const
   numStartingPheasants = 9
   dayLengthInSeconds = 30
+  fadeInDuration = 1.0
 
 var
   pickupSound: SoundEffect
@@ -33,6 +34,8 @@ type
     timeRemaining: float
     pheasants: seq[Pheasant]
     isTimeCountingDown*: bool
+    isFadingIn*: bool
+    fadeInTime: float
     eggCount: CountTable[EggKind]
 
 proc spawnPhesant(this: GameLayer, kind: PheasantKind)
@@ -166,17 +169,25 @@ proc getEggKind*(kind: PheasantKind): EggKind =
     of PheasantKind.GOLDEN:
       return EggKind.GOLDEN
 
+proc startNewDay*(this: GameLayer) =
+  this.isTimeCountingDown = true
+  this.overlay.dayLabel.visible = false
+  this.player.isControllable = true
+
 proc loadNewDay*(this: GameLayer) =
   inc this.day
   this.hud.setDay(this.day)
+  this.overlay.setDay(this.day)
+
+  this.player.setLocation(this.grid.bounds.center)
+  this.player.animationPlayer.playAnimation("idleDown")
+  this.player.velocity = VECTOR_ZERO
 
   this.timeRemaining = float(dayLengthInSeconds)
   this.hud.setTimeRemaining(dayLengthInSeconds)
 
   for pheasant in this.pheasants:
     this.spawnEgg(getEggKind(pheasant.pheasantKind))
-
-  this.player.isControllable = true
 
 method visitChildren*(this: GameLayer, handler: proc(child: Node)) =
   var childrenSeq = this.childIterator.toSeq
@@ -221,7 +232,12 @@ proc checkCollisions(this: GameLayer) =
 
 proc onTimerEnd(this: GameLayer) =
   timeUpSound.play(0.4)
+
   this.player.isControllable = false
+  this.isTimeCountingDown = false
+  this.isFadingIn = true
+  this.overlay.dayLabel.visible = true
+  this.loadNewDay()
 
 template onSecondCountdown(this: GameLayer, time: int) =
   this.hud.setTimeRemaining(time)
@@ -238,7 +254,13 @@ proc updateTimer(this: GameLayer, deltaTime: float) =
     if oldTimeInSeconds != newTimeInSeconds:
       this.onSecondCountdown(newTimeInSeconds)
 
-    this.overlay.update(this.timeRemaining, float dayLengthInSeconds)
+    this.overlay.fadeOut(dayLengthInSeconds - this.timeRemaining, dayLengthInSeconds)
+  elif this.isFadingIn:
+    this.fadeInTime += deltaTime
+    this.overlay.fadeIn(this.fadeInTime, fadeInDuration)
+    if this.fadeInTime >= fadeInDuration:
+      this.fadeInTime = 0
+      this.startNewDay()
 
 method update*(this: GameLayer, deltaTime: float, onChildUpdate: proc(child: Node) = nil) =
   procCall Layer(this).update(deltaTime, onChildUpdate)
@@ -256,3 +278,4 @@ when defined(debug):
       this.grid.highlightTile(ctx, tile)
 
     procCall Layer(this).render(ctx, callback)
+

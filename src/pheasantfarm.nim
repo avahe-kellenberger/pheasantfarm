@@ -47,13 +47,13 @@ when isMainModule:
   startMenu.startButton.onClick:
     menuClickSound.play()
     Game.hud.removeChild(startMenu)
-    layer.player.isControllable = true
     startMenu.visible = false
 
     # Add in-game HUD
     layer.hud.visible = true
     layer.overlay.visible = true
-    layer.isTimeCountingDown = true
+
+    layer.startNewDay()
 
   startMenu.quitButton.onClick:
     Game.stop()

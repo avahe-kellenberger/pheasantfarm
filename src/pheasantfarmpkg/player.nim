@@ -237,7 +237,7 @@ proc calculateDirection(): IVector =
   if Input.isKeyPressed(K_D) or Input.isKeyPressed(K_RIGHT):
     result.x += 1
 
-proc updateDirection(this: Player) =
+proc updateDirection*(this: Player) =
   let dir = calculateDirection()
   if dir == IVECTOR_ZERO:
     this.velocity = VECTOR_ZERO

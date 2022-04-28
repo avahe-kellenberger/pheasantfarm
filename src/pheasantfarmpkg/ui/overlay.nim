@@ -8,7 +8,7 @@ export ui, label
 const orangeColor = newColor(179, 89, 0)
 
 type Overlay* = ref object of Panel
-  dayLabel: Label
+  dayLabel*: Label
   currentColor: Color
 
 proc setDay*(this: Overlay, day: int)
@@ -29,8 +29,8 @@ proc formatInt(num, digits: int): string =
 proc setDay*(this: Overlay, day: int) =
   this.dayLabel.setText("Day " & formatInt(day, 2))
 
-proc update*(this: Overlay, timeRemaining, dayLength: float) =
-  let timeRemainingRatio: float = timeRemaining / dayLength
+proc fadeOut*(this: Overlay, elapsed, fadeOutTime: float) =
+  let timeRemainingRatio: float = min(1.0, (fadeOutTime - elapsed) / fadeOutTime)
   if timeRemainingRatio > 0.5:
     return
   elif not this.visible:
@@ -48,6 +48,10 @@ proc update*(this: Overlay, timeRemaining, dayLength: float) =
     this.currentColor.g = uint8(lerp(orangeColor.g, 0, colorRatio))
     this.currentColor.b = uint8(lerp(orangeColor.b, 0, colorRatio))
     this.currentColor.a = uint8(lerp(120, 255, colorRatio))
+
+proc fadeIn*(this: Overlay, elapsed, fadeInDuration: float) =
+  this.currentColor = BLACK
+  this.currentColor.a = uint8(lerp(255, 0, min(1.0, elapsed / fadeInDuration)))
 
 method render*(this: Overlay, ctx: Target, callback: proc() = nil) =
   if this.visible:
