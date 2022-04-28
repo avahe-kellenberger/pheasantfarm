@@ -10,11 +10,12 @@ const distBetweenText = 0.40
 type Summary* = ref object of Panel
   eggLabels: Table[EggKind, Label]
   totalLabel: Label
+  taxPriceLabel: Label
 
 proc setupEggRow(this: Summary, eggKind: EggKind): Label =
   result = newLabel("00", WHITE)
   result.position.x = 0.65
-  result.position.y = -0.4 + ord(eggKind) * 0.2
+  result.position.y = -0.5 + ord(eggKind) * 0.15
 
   let eggImage = newButton(newSprite(getEggImage(), 4, 1))
   eggImage.position.x = result.position.x - distBetweenText
@@ -53,7 +54,7 @@ proc newSummary*(goToShop: proc()): Summary =
   result.add(titleDaily)
 
   let titleSummary = newLabel("Summary", WHITE)
-  titleSummary.position.y = -0.65
+  titleSummary.position.y = -0.7
   result.add(titleSummary)
 
   for kind in EggKind.low .. EggKind.high:
@@ -62,13 +63,37 @@ proc newSummary*(goToShop: proc()): Summary =
     result.eggLabels[kind] = label
 
   result.totalLabel = newLabel("Total: 0000", WHITE)
-  result.totalLabel.position.y = 0.45
+  result.totalLabel.position.y = 0.55
   result.add(result.totalLabel)
 
   let shopBoard = newButton("./assets/shop_board.png")
   shopBoard.scale = vector(0.75, 0.75)
-  shopBoard.position.y = 0.75
+  shopBoard.position.y = 0.8
   result.add(shopBoard)
+
+  # Taxes
+
+  let ipsBuildingIcon = newButton("./assets/ips.png")
+  ipsBuildingIcon.scale = vector(3.0, 3.0)
+  ipsBuildingIcon.position.x = -0.3
+  ipsBuildingIcon.position.y = result.eggLabels[EggKind.GOLDEN].position.y + 0.2
+  result.add(ipsBuildingIcon)
+
+  let taxLabel = newLabel("tax:", WHITE)
+  taxLabel.position.x = 0.25
+  taxLabel.position.y = ipsBuildingIcon.position.y
+  result.add(taxLabel)
+
+  result.taxPriceLabel = newLabel("0000", WHITE)
+  result.taxPriceLabel.position.x = 0.18
+  result.taxPriceLabel.position.y = ipsBuildingIcon.position.y + 0.15
+  result.add(result.taxPriceLabel)
+
+  let moneyImage = newButton("./assets/money.png")
+  moneyImage.scale = vector(2.8, 2.8)
+  moneyImage.position.x = -0.35
+  moneyImage.position.y = result.taxPriceLabel.position.y
+  result.add(moneyImage)
 
   let this = result
   shopBoard.onClick:
@@ -85,4 +110,7 @@ proc setEggCount*(this: Summary, eggCount: CountTable[EggKind]) =
 
 proc setTotal*(this: Summary, total: int) =
   this.totalLabel.setText("Total: " & $total)
+
+proc setTaxPrice*(this: Summary, tax: int) =
+  this.taxPriceLabel.setText(formatInt(tax, 4))
 

@@ -15,7 +15,7 @@ import ui/summary as summaryModule
 
 const
   numStartingPheasants = 15
-  dayLengthInSeconds = 5
+  dayLengthInSeconds = 30
   fadeInDuration = 1.0
 
 var
@@ -40,6 +40,7 @@ type
     player*: Player
     day: int
     money: int
+    tax: int
     pheedCount: int
     waterCount: int
     nestCount: int
@@ -126,7 +127,7 @@ proc newGameLayer*(grid: Grid): GameLayer =
   result.summary.visible = false
   result.summary.setLocation(
     getLocationInParent(this.summary.position, gamestate.resolution) +
-    vector(gamestate.resolution.x * 0.5, gamestate.resolution.y * 0.35)
+    vector(gamestate.resolution.x * 0.5, gamestate.resolution.y * 0.45)
   )
   Game.hud.addChild(result.summary)
 
@@ -154,7 +155,7 @@ proc newGameLayer*(grid: Grid): GameLayer =
 
     this.summary.setLocation(
       getLocationInParent(this.summary.position, gamestate.resolution) +
-      vector(gamestate.resolution.x * 0.5, gamestate.resolution.y * 0.35)
+      vector(gamestate.resolution.x * 0.5, gamestate.resolution.y * 0.45)
     )
 
   result.grid = grid
@@ -265,6 +266,7 @@ proc loadNewDay*(this: GameLayer) =
   for i in 0 ..< 3:
     this.spawnPhesant(PheasantKind.COMMON)
 
+  # TODO: Use pheed and water count to adjust this
   for pheasant in this.pheasants:
     this.spawnEgg(getEggKind(pheasant.pheasantKind))
 
@@ -278,15 +280,30 @@ proc updateHUDValues(this: GameLayer) =
   for kind in EggKind.low .. EggKind.high:
     this.hud.setEggCount(kind, this.eggCount[kind])
 
+func calcTax(day: int): int =
+  return day ^ 2
+
 proc openSummary(this: GameLayer) =
+  # TODO: Need a function to update tax price each day
+  # TODO: End game when money < 0
+  this.tax = calcTax(this.day)
+  this.money = max(0, this.money - this.tax)
+  this.summary.setTaxPrice(this.tax)
+
   this.summary.setEggCount(this.eggCount)
 
-  let total = eggModule.calcTotal(this.eggCount)
+  let total = eggModule.calcTotal(this.eggCount) - this.tax
   this.summary.setTotal(total)
 
   this.eggCount.clear()
-  this.money += total
+  this.money = max(0, this.money + total)
   this.updateHUDValues()
+
+  let numPheasants = this.pheasants.len
+  this.pheedCount -= min(this.pheedCount, numPheasants)
+  this.waterCount -= min(this.waterCount, numPheasants)
+  this.itemPanel.setPheedCount(this.pheedCount)
+  this.itemPanel.setWaterCount(this.waterCount)
 
   this.summary.visible = true
 
