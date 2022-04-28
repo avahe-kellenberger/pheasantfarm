@@ -45,6 +45,7 @@ type
 proc startNewDay*(this: GameLayer)
 proc loadNewDay*(this: GameLayer)
 proc openShop(this: GameLayer)
+proc tryPurchase(this: GameLayer, item: Item, qty: int)
 proc openSummary(this: GameLayer)
 proc spawnPhesant(this: GameLayer, kind: PheasantKind)
 proc spawnEgg(this: GameLayer, kind: EggKind)
@@ -94,8 +95,8 @@ proc newGameLayer*(grid: Grid): GameLayer =
   Game.hud.addChild(result.hud)
 
   result.shop = newShop(
-    proc() =
-      this.loadNewDay()
+    (proc(item: Item, qty: int) = this.tryPurchase(item, qty)),
+    (proc() = this.loadNewDay())
   )
   result.shop.visible = false
   result.shop.setLocation(
@@ -267,6 +268,10 @@ proc openSummary(this: GameLayer) =
 
 proc openShop(this: GameLayer) =
   this.shop.visible = true
+
+proc tryPurchase(this: GameLayer, item: Item, qty: int) =
+  # TODO
+  echo "Try to purchase " & $qty & " " & $item
 
 method visitChildren*(this: GameLayer, handler: proc(child: Node)) =
   var childrenSeq = this.childIterator.toSeq

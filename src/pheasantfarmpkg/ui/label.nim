@@ -8,6 +8,7 @@ type
     color: Color
     imageOfText: Image
     filter: Filter
+    font*: Font
 
   Label* = ref LabelObj
 
@@ -46,8 +47,14 @@ proc setRenderFilter*(this: Label, filter: Filter) =
 
 Label.renderAsChildOf(UIElement):
   if this.imageOfText == nil:
+    let font =
+      if this.font != nil:
+        this.font
+      else:
+      fontloader.getFont()
+
     let surface = renderText_Blended_Wrapped(
-      fontloader.getFont(),
+      font,
       cstring this.text,
       this.color,
       # Passing in 0 means lines only wrap on newline chars.
