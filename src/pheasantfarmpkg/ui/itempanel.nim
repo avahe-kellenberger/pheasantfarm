@@ -11,9 +11,16 @@ var
 
 type ItemPanel* = ref object of Panel
   pheasantCountLabel: Label
+  pheedCountLabel: Label
+  waterCountLabel: Label
+  nestCountLabel: Label
 
 proc createItem(this: ItemPanel, sprite: Sprite, position: Position, scale: Vector, qty: int): Label
+
 proc setPheasantCount*(this: ItemPanel, count: int)
+proc setPheedCount*(this: ItemPanel, count: int)
+proc setWaterCount*(this: ItemPanel, count: int)
+proc setNestCount*(this: ItemPanel, count: int)
 
 proc newItemPanel*(): ItemPanel =
   result = ItemPanel()
@@ -37,9 +44,14 @@ proc newItemPanel*(): ItemPanel =
   result.pheasantCountLabel = 
     result.createItem(pheasantSprite, newPosition(-0.9, -0.6), vector(4.0, 4.0), 0)
 
-  discard result.createItem(pheedSprite, newPosition(-0.9, -0.2), vector(3.0, 3.0), 0)
-  discard result.createItem(waterSprite, newPosition(-0.9, 0.2), vector(3.0, 3.0), 0)
-  discard result.createItem(nestSprite, newPosition(-0.9, 0.6), vector(4.0, 4.0), 0)
+  result.pheedCountLabel =
+    result.createItem(pheedSprite, newPosition(-0.9, -0.2), vector(3.0, 3.0), 0)
+
+  result.waterCountLabel =
+    result.createItem(waterSprite, newPosition(-0.9, 0.2), vector(3.0, 3.0), 0)
+
+  result.nestCountLabel =
+    result.createItem(nestSprite, newPosition(-0.9, 0.6), vector(4.0, 4.0), 0)
 
 proc createItem(this: ItemPanel, sprite: Sprite, position: Position, scale: Vector, qty: int): Label =
   let boardImage = newButton(itemBoardSprite)
@@ -64,4 +76,13 @@ proc createItem(this: ItemPanel, sprite: Sprite, position: Position, scale: Vect
 
 proc setPheasantCount*(this: ItemPanel, count: int) =
   this.pheasantCountLabel.setText($count)
+
+proc setPheedCount*(this: ItemPanel, count: int) =
+  this.pheedCountLabel.setText($count)
+
+proc setWaterCount*(this: ItemPanel, count: int) =
+  this.waterCountLabel.setText($count)
+
+proc setNestCount*(this: ItemPanel, count: int) =
+  this.nestCountLabel.setText($count)
 

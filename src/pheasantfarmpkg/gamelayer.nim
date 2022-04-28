@@ -15,11 +15,13 @@ import ui/summary as summaryModule
 
 const
   numStartingPheasants = 15
-  dayLengthInSeconds = 30
+  dayLengthInSeconds = 5
   fadeInDuration = 1.0
 
 var
   song: Music
+  menuClickSound: SoundEffect
+  tooPoorSound: SoundEffect
   pickupSound: SoundEffect
   countdownSound: SoundEffect
   timeUpSound: SoundEffect
@@ -38,6 +40,9 @@ type
     player*: Player
     day: int
     money: int
+    pheedCount: int
+    waterCount: int
+    nestCount: int
     timeRemaining: float
     pheasants: seq[Pheasant]
     isTimeCountingDown*: bool
@@ -68,6 +73,8 @@ proc newGameLayer*(grid: Grid): GameLayer =
   else:
     echo "Error playing music: " & err.msg
 
+  menuClickSound = loadSoundEffect("./assets/sfx/menu-click.wav")
+  tooPoorSound = loadSoundEffect("./assets/sfx/poor.wav")
   pickupSound = loadSoundEffect("./assets/sfx/pick-up.wav")
   countdownSound = loadSoundEffect("./assets/sfx/countdown.wav")
   timeUpSound = loadSoundEffect("./assets/sfx/time-up.wav")
@@ -287,8 +294,24 @@ proc openShop(this: GameLayer) =
   this.shop.visible = true
 
 proc tryPurchase(this: GameLayer, item: Item, qty: int) =
-  # TODO
-  echo "Try to purchase " & $qty & " " & $item
+  let price = ITEM_PRICES[item] * qty
+  if this.money >= price:
+    menuClickSound.play()
+    this.money -= price
+    this.hud.setMoney(this.money)
+
+    case item:
+      of Item.PHEED:
+        this.pheedCount += qty
+        this.itemPanel.setPheedCount(this.pheedCount)
+      of Item.WATER:
+        this.waterCount += qty
+        this.itemPanel.setWaterCount(this.waterCount)
+      of Item.NEST:
+        this.nestCount += qty
+        this.itemPanel.setNestCount(this.nestCount)
+  else:
+    tooPoorSound.play()
 
 method visitChildren*(this: GameLayer, handler: proc(child: Node)) =
   var childrenSeq = this.childIterator.toSeq
