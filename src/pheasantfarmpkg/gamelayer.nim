@@ -13,7 +13,7 @@ import ui/overlay as overlayModule
 import ui/summary as summaryModule
 
 const
-  numStartingPheasants = 9
+  numStartingPheasants = 15
   dayLengthInSeconds = 30
   fadeInDuration = 1.0
 
@@ -236,6 +236,9 @@ proc loadNewDay*(this: GameLayer) =
 
   this.timeRemaining = float(dayLengthInSeconds)
   this.hud.setTimeRemaining(dayLengthInSeconds)
+
+  for i in 0 ..< 3:
+    this.pheasants.add(createNewPheasant(PheasantKind.COMMON))
 
   for pheasant in this.pheasants:
     this.spawnEgg(getEggKind(pheasant.pheasantKind))
