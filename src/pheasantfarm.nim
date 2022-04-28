@@ -51,6 +51,7 @@ when isMainModule:
 
     # Add in-game HUD
     layer.hud.visible = true
+    layer.itemPanel.visible = true
 
     layer.startNewDay()
 

@@ -5,6 +5,7 @@ import shade
 import egg as eggModule
 import grid as gridModule
 import ui/hud as hudModule
+import ui/itempanel as itempanelModule
 import ui/shop as shopModule
 import grass as grassModule
 import player as playerModule
@@ -26,6 +27,7 @@ var
 type
   GameLayer* = ref object of Layer
     hud*: HUD
+    itemPanel*: ItemPanel
     summary*: Summary
     shop*: Shop
     overlay*: Overlay
@@ -94,6 +96,14 @@ proc newGameLayer*(grid: Grid): GameLayer =
   )
   Game.hud.addChild(result.hud)
 
+  result.itemPanel = newItemPanel()
+  result.itemPanel.visible = false
+  result.itemPanel.setLocation(
+    getLocationInParent(result.itemPanel.position, gamestate.resolution) +
+    vector(result.itemPanel.size.x * 0.5, gamestate.resolution.y * 0.5)
+  )
+  Game.hud.addChild(result.itemPanel)
+
   result.shop = newShop(
     (proc(item: Item, qty: int) = this.tryPurchase(item, qty)),
     (proc() = this.loadNewDay())
@@ -117,6 +127,11 @@ proc newGameLayer*(grid: Grid): GameLayer =
     this.hud.setLocation(
       getLocationInParent(this.hud.position, gamestate.resolution) +
       vector(gamestate.resolution.x * 0.5, gamestate.resolution.y * 0.05)
+    )
+
+    this.itemPanel.setLocation(
+      getLocationInParent(this.itemPanel.position, gamestate.resolution) +
+      vector(this.itemPanel.size.x * 0.5, gamestate.resolution.y * 0.5)
     )
 
     this.overlay.setLocation(
@@ -184,6 +199,8 @@ proc spawnPhesant(this: GameLayer, kind: PheasantKind) =
   this.addChild(pheasant)
   this.pheasants.add(pheasant)
 
+  this.itemPanel.setPheasantCount(this.pheasants.len)
+
 proc spawnEgg(this: GameLayer, kind: EggKind) =
   let egg = newEgg(kind)
   egg.setLocation vector(
@@ -239,7 +256,7 @@ proc loadNewDay*(this: GameLayer) =
   this.hud.setTimeRemaining(dayLengthInSeconds)
 
   for i in 0 ..< 3:
-    this.pheasants.add(createNewPheasant(PheasantKind.COMMON))
+    this.spawnPhesant(PheasantKind.COMMON)
 
   for pheasant in this.pheasants:
     this.spawnEgg(getEggKind(pheasant.pheasantKind))

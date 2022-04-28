@@ -2,8 +2,8 @@ import shade
 
 import strformat, tables
 
-import panel, ui, button, label, format
-export ui, button, label
+import panel, ui, button, label, format, ../items
+export ui, button, label, items
 
 var shopFont: Font
 
@@ -15,19 +15,8 @@ var
   multiplySprite: Sprite = nil
   moneySprite: Sprite = nil
 
-type
-  Item* {.pure.} = enum
-    PHEED
-    WATER
-    NEST
-  Shop* = ref object of Panel
-    tryPurchase: proc(item: Item, qty: int)
-
-const ITEM_PRICES* = {
-  PHEED: 1,
-  WATER: 1,
-  NEST: 15
-}.toTable()
+type Shop* = ref object of Panel
+  tryPurchase: proc(item: Item, qty: int)
 
 proc buy*(this: Shop, item: Item, qty: int)
 proc createItem(this: Shop, item: Item, position: Position, scale: Vector, qty: int)
