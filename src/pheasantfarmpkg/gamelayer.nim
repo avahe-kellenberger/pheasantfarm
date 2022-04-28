@@ -14,7 +14,7 @@ import ui/summary as summaryModule
 
 const
   numStartingPheasants = 9
-  dayLengthInSeconds = 5
+  dayLengthInSeconds = 30
   fadeInDuration = 1.0
 
 var
