@@ -16,6 +16,7 @@ const
   fadeInDuration = 1.0
 
 var
+  song: Music
   pickupSound: SoundEffect
   countdownSound: SoundEffect
   timeUpSound: SoundEffect
@@ -34,17 +35,29 @@ type
     timeRemaining: float
     pheasants: seq[Pheasant]
     isTimeCountingDown*: bool
-    isFadingIn*: bool
     fadeInTime: float
     eggCount: CountTable[EggKind]
 
+proc startNewDay*(this: GameLayer)
+proc openShop(this: GameLayer)
 proc spawnPhesant(this: GameLayer, kind: PheasantKind)
 proc spawnEgg(this: GameLayer, kind: EggKind)
 proc onEggCollected(this: GameLayer, egg: Egg)
 
+proc playMusic(fadeInTime: float = 0.0) =
+  discard capture fadeInMusic(song, fadeInTime, 0.25)
+
 proc newGameLayer*(grid: Grid): GameLayer =
   result = GameLayer()
   initLayer(Layer(result))
+
+  # Play some music
+  let (someSong, err) = capture loadMusic("./assets/music/joy-ride.ogg")
+  if err == nil:
+    song = someSong
+    playMusic(3.0)
+  else:
+    echo "Error playing music: " & err.msg
 
   pickupSound = loadSoundEffect("./assets/sfx/pick-up.wav")
   countdownSound = loadSoundEffect("./assets/sfx/countdown.wav")
@@ -61,7 +74,11 @@ proc newGameLayer*(grid: Grid): GameLayer =
   )
   Game.hud.addChild(result.hud)
 
-  result.overlay = newOverlay()
+  let this = result
+
+  result.overlay = newOverlay(
+    proc () = this.startNewDay
+  )
   result.overlay.size = gamestate.resolution
   result.overlay.visible = false
   result.overlay.setLocation(
@@ -72,7 +89,6 @@ proc newGameLayer*(grid: Grid): GameLayer =
   Game.hud.addChild(result.overlay)
 
   # Center the HUD and overlay if the screen size changes.
-  let this = result
   gamestate.onResolutionChanged:
     this.hud.setLocation(
       getLocationInParent(this.hud.position, gamestate.resolution) +
@@ -171,8 +187,10 @@ proc getEggKind*(kind: PheasantKind): EggKind =
 
 proc startNewDay*(this: GameLayer) =
   this.isTimeCountingDown = true
-  this.overlay.dayLabel.visible = false
   this.player.isControllable = true
+
+proc fadeIn*(this: GameLayer) =
+  this.overlay.animationPlayer.play("fade-in")
 
 proc loadNewDay*(this: GameLayer) =
   inc this.day
@@ -188,6 +206,14 @@ proc loadNewDay*(this: GameLayer) =
 
   for pheasant in this.pheasants:
     this.spawnEgg(getEggKind(pheasant.pheasantKind))
+
+  playMusic()
+
+  if this.overlay.visible:
+    this.fadeIn()
+
+proc openShop(this: GameLayer) =
+  this.loadNewDay()
 
 method visitChildren*(this: GameLayer, handler: proc(child: Node)) =
   var childrenSeq = this.childIterator.toSeq
@@ -235,9 +261,7 @@ proc onTimerEnd(this: GameLayer) =
 
   this.player.isControllable = false
   this.isTimeCountingDown = false
-  this.isFadingIn = true
-  this.overlay.dayLabel.visible = true
-  this.loadNewDay()
+  this.openShop()
 
 template onSecondCountdown(this: GameLayer, time: int) =
   this.hud.setTimeRemaining(time)
@@ -251,21 +275,20 @@ proc updateTimer(this: GameLayer, deltaTime: float) =
     let oldTimeInSeconds = int ceil(this.timeRemaining)
     this.timeRemaining = max(0.0, this.timeRemaining - deltaTime)
     let newTimeInSeconds = int ceil(this.timeRemaining)
+
     if oldTimeInSeconds != newTimeInSeconds:
       this.onSecondCountdown(newTimeInSeconds)
 
-    this.overlay.fadeOut(dayLengthInSeconds - this.timeRemaining, dayLengthInSeconds)
-  elif this.isFadingIn:
-    this.fadeInTime += deltaTime
-    this.overlay.fadeIn(this.fadeInTime, fadeInDuration)
-    if this.fadeInTime >= fadeInDuration:
-      this.fadeInTime = 0
-      this.startNewDay()
+    if not this.overlay.visible and this.timeRemaining <= 15:
+      this.overlay.visible = true
+      this.overlay.animationPlayer.play("fade-out")
+      this.overlay.animationPlayer.update(15 - this.timeRemaining)
 
 method update*(this: GameLayer, deltaTime: float, onChildUpdate: proc(child: Node) = nil) =
   procCall Layer(this).update(deltaTime, onChildUpdate)
   this.checkCollisions()
   this.updateTimer(deltaTime)
+  this.overlay.update(deltaTime)
 
 when defined(debug):
   method render*(this: GameLayer, ctx: Target, callback: proc() = nil) =

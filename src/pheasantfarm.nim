@@ -51,7 +51,6 @@ when isMainModule:
 
     # Add in-game HUD
     layer.hud.visible = true
-    layer.overlay.visible = true
 
     layer.startNewDay()
 
@@ -63,14 +62,6 @@ when isMainModule:
     proc(key: Keycode, state: KeyState) =
       Game.stop()
   )
-
-  when not defined(debug):
-    # Play some music
-    let (someSong, err) = capture loadMusic("./assets/music/joy-ride.ogg")
-    if err == nil:
-      discard capture fadeInMusic(someSong, 3.0, 0.25)
-    else:
-      echo "Error playing music: " & err.msg
 
   Game.start()
 
