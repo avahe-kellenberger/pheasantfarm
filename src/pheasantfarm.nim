@@ -13,7 +13,6 @@ when isMainModule:
     fullscreen = true,
     clearColor = newColor(26, 136, 24)
   )
-  Game.setDeltaSmoothing(60)
 
   Game.hud = newLayer()
 

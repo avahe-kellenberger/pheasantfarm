@@ -53,17 +53,21 @@ proc newShop*(tryPurchase: proc(item: Item, qty: int), onExit: proc()): Shop =
 
   # Create shop items
 
-  result.createItem(PHEED, newPosition(-0.6, -0.22), vector(4, 4), 1)
-  result.createItem(PHEED, newPosition(-0.6, 0.22), vector(4, 4), 10)
-  result.createItem(PHEED, newPosition(-0.6, 0.72), vector(4, 4), 50)
+  const
+    topBoardYPosition = -0.28
+    yDistance = 0.44
 
-  result.createItem(WATER, newPosition(0.0, -0.22), vector(4, 4), 1)
-  result.createItem(WATER, newPosition(0.0, 0.22), vector(4, 4), 10)
-  result.createItem(WATER, newPosition(0.0, 0.72), vector(4, 4), 50)
+  result.createItem(PHEED, newPosition(-0.6, topBoardYPosition), vector(4, 4), 1)
+  result.createItem(PHEED, newPosition(-0.6, topBoardYPosition + yDistance), vector(4, 4), 10)
+  result.createItem(PHEED, newPosition(-0.6, topBoardYPosition + yDistance * 2), vector(4, 4), 50)
 
-  result.createItem(NEST, newPosition(0.6, -0.22), vector(4.5, 4.5), 1)
-  result.createItem(NEST, newPosition(0.6, 0.22), vector(4.5, 4.5), 10)
-  result.createItem(NEST, newPosition(0.6, 0.72), vector(4.5, 4.5), 50)
+  result.createItem(WATER, newPosition(0.0, topBoardYPosition), vector(4, 4), 1)
+  result.createItem(WATER, newPosition(0.0, topBoardYPosition + yDistance), vector(4, 4), 10)
+  result.createItem(WATER, newPosition(0.0, topBoardYPosition + yDistance * 2), vector(4, 4), 50)
+
+  result.createItem(NEST, newPosition(0.6, topBoardYPosition), vector(4.5, 4.5), 1)
+  result.createItem(NEST, newPosition(0.6, topBoardYPosition + yDistance), vector(4.5, 4.5), 10)
+  result.createItem(NEST, newPosition(0.6, topBoardYPosition + yDistance * 2), vector(4.5, 4.5), 50)
 
   let
     (_, exitImage) = Images.loadImage("./assets/x.png")

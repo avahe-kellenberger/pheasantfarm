@@ -244,7 +244,8 @@ proc newGameLayer*(grid: Grid): GameLayer =
     proc(key: Keycode, state: KeyState) =
       if state.justPressed and
          this.player.isControllable and
-         this.player.isHoldingNest:
+         this.player.isHoldingNest and
+         this.eggCount[EggKind.WHITE] > 0:
             let placementTile = this.getTilePlayerIsFacing()
             if this.isTileInPlayArea(placementTile):
               if this.grid.isTileAvailable(placementTile, proc(body: PhysicsBody): bool = true):
@@ -531,6 +532,7 @@ proc placeNest(this: GameLayer, tile: TileCoord) =
     inc this.nestsOnGround
     this.eggCount.inc(EggKind.WHITE, -1)
     this.hud.setEggCount(EggKind.WHITE, this.eggCount[EggKind.WHITE])
+    this.itemPanel.setNestCount(this.nestCount)
 
 method update*(this: GameLayer, deltaTime: float, onChildUpdate: proc(child: Node) = nil) =
   procCall Layer(this).update(deltaTime, onChildUpdate)
