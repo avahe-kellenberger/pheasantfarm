@@ -68,6 +68,8 @@ proc newGameLayer*(grid: Grid): GameLayer =
   result = GameLayer()
   initLayer(Layer(result))
 
+  result.nestCount = 100
+
   # Play some music
   let (someSong, err) = capture loadMusic("./assets/music/joy-ride.ogg")
   if err == nil:
@@ -221,6 +223,31 @@ proc newGameLayer*(grid: Grid): GameLayer =
     this.spawnPhesant(PheasantKind.COMMON)
   this.spawnPhesant(PheasantKind.GRAY_PEACOCK)
 
+  # Nest controls
+  Input.addKeyEventListener(
+    K_Q,
+    proc(key: Keycode, state: KeyState) =
+      if state.justPressed and
+         this.player.isControllable and
+         not this.player.isHoldingNest and
+         this.nestCount > 0:
+          echo "USE NEST"
+          # TODO: "Use" nest
+          this.player.isHoldingNest = true
+          this.player.updateAnimation()
+  )
+
+  Input.addKeyEventListener(
+    K_E,
+    proc(key: Keycode, state: KeyState) =
+      if state.justPressed and
+         this.player.isControllable and
+         this.player.isHoldingNest:
+          # TODO: Place nest if holding one
+          this.player.isHoldingNest = false
+          this.player.updateAnimation()
+  )
+
 proc isBlocking(body: PhysicsBody): bool =
   return not (body of Egg)
 
@@ -298,6 +325,7 @@ proc loadNewDay*(this: GameLayer) =
   this.overlay.setDay(this.day)
 
   this.player.setLocation(this.grid.bounds.center)
+  this.player.isHoldingNest = false
   this.player.animationPlayer.playAnimation("idleDown")
 
   this.timeRemaining = float(dayLengthInSeconds)

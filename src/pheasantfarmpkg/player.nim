@@ -24,7 +24,7 @@ type
     animationPlayer*: AnimationPlayer
     sprite*: Sprite
     direction: IVector
-    isHoldingItem: bool
+    isHoldingNest*: bool
 
 const
     INPUT_MAP = {
@@ -172,18 +172,18 @@ proc isMovementKeyPressed(): bool =
       return true
   return false
 
-proc updateAnimation(this: Player) =
+proc updateAnimation*(this: Player) =
   let isWalking = this.velocity != VECTOR_ZERO
 
   # Right
   if this.direction.x == 1:
     if isWalking:
-      if this.isHoldingItem:
+      if this.isHoldingNest:
         this.animationPlayer.play("walkRightHolding")
       else:
         this.animationPlayer.play("walkRight")
     else:
-      if this.isHoldingItem:
+      if this.isHoldingNest:
         this.animationPlayer.play("idleRightHolding")
       else:
         this.animationPlayer.play("idleRight")
@@ -191,12 +191,12 @@ proc updateAnimation(this: Player) =
   # Left
   if this.direction.x == -1:
     if isWalking:
-      if this.isHoldingItem:
+      if this.isHoldingNest:
         this.animationPlayer.play("walkLeftHolding")
       else:
         this.animationPlayer.play("walkLeft")
     else:
-      if this.isHoldingItem:
+      if this.isHoldingNest:
         this.animationPlayer.play("idleLeftHolding")
       else:
         this.animationPlayer.play("idleLeft")
@@ -204,12 +204,12 @@ proc updateAnimation(this: Player) =
   # Up
   if this.direction.y == -1:
     if isWalking:
-      if this.isHoldingItem:
+      if this.isHoldingNest:
         this.animationPlayer.play("walkUpHolding")
       else:
         this.animationPlayer.play("walkUp")
     else:
-      if this.isHoldingItem:
+      if this.isHoldingNest:
         this.animationPlayer.play("idleUpHolding")
       else:
         this.animationPlayer.play("idleUp")
@@ -217,12 +217,12 @@ proc updateAnimation(this: Player) =
   # Down
   if this.direction.y == 1:
     if isWalking:
-      if this.isHoldingItem:
+      if this.isHoldingNest:
         this.animationPlayer.play("walkDownHolding")
       else:
         this.animationPlayer.play("walkDown")
     else:
-      if this.isHoldingItem:
+      if this.isHoldingNest:
         this.animationPlayer.play("idleDownHolding")
       else:
         this.animationPlayer.play("idleDown")
