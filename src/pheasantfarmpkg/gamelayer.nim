@@ -417,11 +417,11 @@ proc openShop(this: GameLayer) =
     let randNum = rand(0..1000)
     let kind =
       case randNum:
-        of 951..1000:
+        of 981..1000:
           PheasantKind.GOLDEN
-        of 851..950:
+        of 891..980:
           PheasantKind.BLUE_EARED
-        of 651..850:
+        of 741..890:
           PheasantKind.GRAY_PEACOCK
         else:
           PheasantKind.COMMON
