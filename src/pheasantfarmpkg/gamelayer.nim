@@ -301,9 +301,33 @@ proc loadNewDay*(this: GameLayer) =
   for i in 0 ..< 3:
     this.spawnPhesant(PheasantKind.COMMON)
 
-  # TODO: Use pheed and water count to adjust this
+  let numPheasants = this.pheasants.len
+  
+  var
+    pheedUsed = min(this.pheedCount, numPheasants)
+    waterUsed = min(this.waterCount, numPheasants)
+
+  this.pheedCount -= pheedUsed
+  this.waterCount -= waterUsed
+  this.itemPanel.setPheedCount(this.pheedCount)
+  this.itemPanel.setWaterCount(this.waterCount)
+
+  # Sort by rarity
+  this.pheasants.sort(
+    proc(p1, p2: Pheasant): int =
+      ord(p1.pheasantKind) - ord(p2.pheasantKind)
+  )
+
   for pheasant in this.pheasants:
     this.spawnEgg(getEggKind(pheasant.pheasantKind))
+
+    if pheedUsed > 0:
+      this.spawnEgg(getEggKind(pheasant.pheasantKind))
+      dec pheedUsed
+
+    if waterUsed > 0:
+      this.spawnEgg(getEggKind(pheasant.pheasantKind))
+      dec waterUsed
 
   playMusic()
 
@@ -335,12 +359,6 @@ proc openSummary(this: GameLayer) =
       this.summary.setOutOfFunds()
 
   this.updateHUDValues()
-
-  let numPheasants = this.pheasants.len
-  this.pheedCount -= min(this.pheedCount, numPheasants)
-  this.waterCount -= min(this.waterCount, numPheasants)
-  this.itemPanel.setPheedCount(this.pheedCount)
-  this.itemPanel.setWaterCount(this.waterCount)
 
   this.summary.visible = true
 
