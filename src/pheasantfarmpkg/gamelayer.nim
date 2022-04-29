@@ -20,9 +20,9 @@ const
   dayLengthInSeconds = 30
   fadeInDuration = 1.0
   startingMoney = 50
-  startingPheedCount = 20
-  startingWaterCount = 20
-  taxDayFrequency = 3
+  startingPheedCount = 30
+  startingWaterCount = 30
+  taxDayFrequency = 4
 
 var
   song: Music
