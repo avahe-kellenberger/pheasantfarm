@@ -2,7 +2,7 @@ import shade
 
 import std/[tables, sugar, strutils]
 
-const speed = 64.0
+const speed = 96.0
 
 type
   PlayerAction {.pure.} = enum
@@ -23,8 +23,8 @@ type
     isControllable*: bool
     animationPlayer*: AnimationPlayer
     sprite*: Sprite
-    direction: IVector
-    isHoldingItem: bool
+    direction*: IVector
+    isHoldingNest*: bool
 
 const
     INPUT_MAP = {
@@ -133,7 +133,7 @@ proc createPlayerSprite(this: Player): Sprite =
   result = newSprite(image, 6, 3)
 
 proc createCollisionShape(scale: Vector): CollisionShape =
-  result = newCollisionShape(newAABB(-2, -2, 2, 0).getScaledInstance(scale))
+  result = newCollisionShape(newAABB(-2, -4, 2, 0).getScaledInstance(scale))
 
 proc createAnimPlayer(this: Player): AnimationPlayer =
   result = newAnimationPlayer()
@@ -172,18 +172,18 @@ proc isMovementKeyPressed(): bool =
       return true
   return false
 
-proc updateAnimation(this: Player) =
+proc updateAnimation*(this: Player) =
   let isWalking = this.velocity != VECTOR_ZERO
 
   # Right
   if this.direction.x == 1:
     if isWalking:
-      if this.isHoldingItem:
+      if this.isHoldingNest:
         this.animationPlayer.play("walkRightHolding")
       else:
         this.animationPlayer.play("walkRight")
     else:
-      if this.isHoldingItem:
+      if this.isHoldingNest:
         this.animationPlayer.play("idleRightHolding")
       else:
         this.animationPlayer.play("idleRight")
@@ -191,12 +191,12 @@ proc updateAnimation(this: Player) =
   # Left
   if this.direction.x == -1:
     if isWalking:
-      if this.isHoldingItem:
+      if this.isHoldingNest:
         this.animationPlayer.play("walkLeftHolding")
       else:
         this.animationPlayer.play("walkLeft")
     else:
-      if this.isHoldingItem:
+      if this.isHoldingNest:
         this.animationPlayer.play("idleLeftHolding")
       else:
         this.animationPlayer.play("idleLeft")
@@ -204,12 +204,12 @@ proc updateAnimation(this: Player) =
   # Up
   if this.direction.y == -1:
     if isWalking:
-      if this.isHoldingItem:
+      if this.isHoldingNest:
         this.animationPlayer.play("walkUpHolding")
       else:
         this.animationPlayer.play("walkUp")
     else:
-      if this.isHoldingItem:
+      if this.isHoldingNest:
         this.animationPlayer.play("idleUpHolding")
       else:
         this.animationPlayer.play("idleUp")
@@ -217,12 +217,12 @@ proc updateAnimation(this: Player) =
   # Down
   if this.direction.y == 1:
     if isWalking:
-      if this.isHoldingItem:
+      if this.isHoldingNest:
         this.animationPlayer.play("walkDownHolding")
       else:
         this.animationPlayer.play("walkDown")
     else:
-      if this.isHoldingItem:
+      if this.isHoldingNest:
         this.animationPlayer.play("idleDownHolding")
       else:
         this.animationPlayer.play("idleDown")

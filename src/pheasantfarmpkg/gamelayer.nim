@@ -3,6 +3,7 @@ import std/[sequtils, algorithm, sets, random, tables]
 import shade
 
 import egg as eggModule
+import nest as nestModule
 import grid as gridModule
 import ui/hud as hudModule
 import ui/shop as shopModule
@@ -46,6 +47,7 @@ type
     pheedCount: int
     waterCount: int
     nestCount: int
+    nestsOnGround: int
     timeRemaining: float
     pheasants: seq[Pheasant]
     isTimeCountingDown*: bool
@@ -60,6 +62,10 @@ proc openSummary(this: GameLayer)
 proc spawnPhesant(this: GameLayer, kind: PheasantKind)
 proc spawnEgg(this: GameLayer, kind: EggKind)
 proc onEggCollected(this: GameLayer, egg: Egg)
+proc getTilePlayerIsFacing(this: GameLayer): TileCoord
+proc isTileInPlayArea(this: GameLayer, tile: TileCoord): bool
+proc placeNest(this: GameLayer, tile: TileCoord)
+proc isBlocking(body: PhysicsBody): bool
 
 proc playMusic(fadeInTime: float = 0.0) =
   discard capture fadeInMusic(song, fadeInTime, 0.25)
@@ -221,6 +227,30 @@ proc newGameLayer*(grid: Grid): GameLayer =
     this.spawnPhesant(PheasantKind.COMMON)
   this.spawnPhesant(PheasantKind.GRAY_PEACOCK)
 
+  # Nest controls
+  Input.addKeyEventListener(
+    K_Q,
+    proc(key: Keycode, state: KeyState) =
+      if state.justPressed and
+         this.player.isControllable and
+         not this.player.isHoldingNest and
+         this.nestCount > 0:
+          this.player.isHoldingNest = true
+          this.player.updateAnimation()
+  )
+
+  Input.addKeyEventListener(
+    K_E,
+    proc(key: Keycode, state: KeyState) =
+      if state.justPressed and
+         this.player.isControllable and
+         this.player.isHoldingNest:
+            let placementTile = this.getTilePlayerIsFacing()
+            if this.isTileInPlayArea(placementTile):
+              if this.grid.isTileAvailable(placementTile, proc(body: PhysicsBody): bool = true):
+                this.placeNest(placementTile)
+  )
+
 proc isBlocking(body: PhysicsBody): bool =
   return not (body of Egg)
 
@@ -283,14 +313,16 @@ proc fadeIn*(this: GameLayer) =
 template isTaxDay(this: GameLayer): bool =
   this.day mod 7 == 0
 
-proc removeEggsFromGame(this: GameLayer) =
+proc clearEggsAndNests(this: GameLayer) =
   for child in this.childIterator:
-    if child of Egg:
+    if child of Egg or child of Nest:
       this.removeChild(child)
-      this.grid.removePhysicsBodies(Egg(child))
+      this.grid.removePhysicsBodies(PhysicsBody(child))
+
+  this.nestsOnGround = 0
 
 proc loadNewDay*(this: GameLayer) =
-  this.removeEggsFromGame()
+  this.clearEggsAndNests()
 
   inc this.day
   this.summary.updateDaysTillTax(this.day)
@@ -298,14 +330,11 @@ proc loadNewDay*(this: GameLayer) =
   this.overlay.setDay(this.day)
 
   this.player.setLocation(this.grid.bounds.center)
+  this.player.isHoldingNest = false
   this.player.animationPlayer.playAnimation("idleDown")
-  this.player.velocity = VECTOR_ZERO
 
   this.timeRemaining = float(dayLengthInSeconds)
   this.hud.setTimeRemaining(dayLengthInSeconds)
-
-  for i in 0 ..< 3:
-    this.spawnPhesant(PheasantKind.COMMON)
 
   let numPheasants = this.pheasants.len
   
@@ -369,6 +398,25 @@ proc openSummary(this: GameLayer) =
   this.summary.visible = true
 
 proc openShop(this: GameLayer) =
+  for i in 0 ..< 3:
+    this.spawnPhesant(PheasantKind.COMMON)
+
+  # Spawn pheasants from nests
+  for i in 0 ..< this.nestsOnGround:
+    let randNum = rand(0..1000)
+    let kind =
+      case randNum:
+        of 951..1000:
+          PheasantKind.GOLDEN
+        of 851-950:
+          PheasantKind.BLUE_EARED
+        of 651..850:
+          PheasantKind.GRAY_PEACOCK
+        else:
+          PheasantKind.COMMON
+
+    this.spawnPhesant(kind)
+
   this.shop.visible = true
 
 proc tryPurchase(this: GameLayer, item: Item, qty: int) =
@@ -436,6 +484,7 @@ proc onTimerEnd(this: GameLayer) =
   timeUpSound.play(0.4)
 
   this.player.isControllable = false
+  this.player.velocity = VECTOR_ZERO
   this.isTimeCountingDown = false
 
 template onSecondCountdown(this: GameLayer, time: int) =
@@ -459,21 +508,52 @@ proc updateTimer(this: GameLayer, deltaTime: float) =
       this.overlay.animationPlayer.play("fade-out")
       this.overlay.animationPlayer.update(15 - this.timeRemaining)
 
+proc getTilePlayerIsFacing(this: GameLayer): TileCoord =
+  var playerLoc = this.player.getLocation()
+  playerLoc.x += this.grid.tileSize * float this.player.direction.x
+  playerLoc.y += this.grid.tileSize * float this.player.direction.y
+  return this.grid.worldCoordToTile(playerLoc.x, playerLoc.y)
+
+proc isTileInPlayArea(this: GameLayer, tile: TileCoord): bool =
+  return
+    tile.x >= 1 and tile.x <= this.grid.width - 2 and
+    tile.y >= 1 and tile.y <= this.grid.height - 3
+
+proc placeNest(this: GameLayer, tile: TileCoord) =
+  if tile != NULL_TILE:
+    let nest = newNest()
+    nest.setLocation(this.grid.tileToWorldCoord(tile))
+    this.addChild(nest)
+    this.grid.addPhysicsBodies(nest)
+    this.player.isHoldingNest = false
+    this.player.updateAnimation()
+    dec this.nestCount
+    inc this.nestsOnGround
+    this.eggCount.inc(EggKind.WHITE, -1)
+    this.hud.setEggCount(EggKind.WHITE, this.eggCount[EggKind.WHITE])
+
 method update*(this: GameLayer, deltaTime: float, onChildUpdate: proc(child: Node) = nil) =
   procCall Layer(this).update(deltaTime, onChildUpdate)
   this.checkCollisions()
   this.updateTimer(deltaTime)
   this.overlay.update(deltaTime)
 
-when defined(debug):
-  method render*(this: GameLayer, ctx: Target, callback: proc() = nil) =
-    let camera = Game.scene.camera
+method render*(this: GameLayer, ctx: Target, callback: proc() = nil) =
+  let camera = Game.scene.camera
+  when defined(debug):
     this.grid.render(ctx, camera)
     let mouseInWorldSpace = camera.screenToWorldCoord(Input.mouseLocation, this.z - camera.z)
-    let tileOpt = this.grid.worldCoordToTile(mouseInWorldSpace)
-    if tileOpt.isSome():
-      let tile = tileOpt.get()
-      this.grid.highlightTile(ctx, tile)
+    let tile = this.grid.worldCoordToTile(mouseInWorldSpace)
+    if tile != NULL_TILE:
+      this.grid.highlightTile(ctx, tile, PURPLE, true)
 
-    procCall Layer(this).render(ctx, callback)
+  if this.player.isControllable and this.player.isHoldingNest:
+    let tile = this.getTilePlayerIsFacing()
+    if this.isTileInPlayArea(tile):
+      if this.eggCount[EggKind.WHITE] > 0:
+        this.grid.highlightTile(ctx, tile)
+      else:
+        this.grid.highlightTile(ctx, tile, RED, forceColor = true)
+
+  procCall Layer(this).render(ctx, callback)
 
