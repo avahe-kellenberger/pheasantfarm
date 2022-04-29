@@ -299,7 +299,6 @@ proc loadNewDay*(this: GameLayer) =
 
   this.player.setLocation(this.grid.bounds.center)
   this.player.animationPlayer.playAnimation("idleDown")
-  this.player.velocity = VECTOR_ZERO
 
   this.timeRemaining = float(dayLengthInSeconds)
   this.hud.setTimeRemaining(dayLengthInSeconds)
@@ -436,6 +435,7 @@ proc onTimerEnd(this: GameLayer) =
   timeUpSound.play(0.4)
 
   this.player.isControllable = false
+  this.player.velocity = VECTOR_ZERO
   this.isTimeCountingDown = false
 
 template onSecondCountdown(this: GameLayer, time: int) =

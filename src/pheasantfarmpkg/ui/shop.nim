@@ -5,9 +5,8 @@ import strformat, tables
 import panel, ui, button, label, format, ../items
 export ui, button, label, items
 
-var shopFont: Font
-
 var
+  shopFont: Font
   shopBoardSprite: Sprite = nil
   pheedSprite: Sprite = nil
   waterSprite: Sprite = nil

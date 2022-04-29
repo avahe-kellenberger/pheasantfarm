@@ -6,6 +6,7 @@ import panel, ui, button, label, format, ../items
 export ui, button, label, items
 
 var
+  instructionsFont: Font
   itemBoardSprite: Sprite = nil
   multiplySprite: Sprite = nil
 
@@ -32,6 +33,7 @@ proc newItemPanel*(): ItemPanel =
   multiplySprite = newSprite(Images.loadImage("./assets/multiply.png", FILTER_NEAREST).image)
 
   let
+    instructionsFont = Fonts.load("./assets/fonts/kennypixel.ttf", 32).font
     pheasantSprite = newSprite(
       Images.loadImage("./assets/common_pheasant.png", FILTER_NEAREST).image,
       4,
@@ -52,6 +54,18 @@ proc newItemPanel*(): ItemPanel =
 
   result.nestCountLabel =
     result.createItem(nestSprite, newPosition(-0.9, 0.6), vector(4.0, 4.0), 0)
+
+  let nestInstructions = newLabel("Press Q to use Nest", WHITE)
+  nestInstructions.font = instructionsFont
+  nestInstructions.position.x = result.nestCountLabel.position.x - 0.4
+  nestInstructions.position.y = 0.85
+  result.add(nestInstructions)
+
+  let nestPlacementInstructions = newLabel("Press E to place", WHITE)
+  nestPlacementInstructions.font = instructionsFont
+  nestPlacementInstructions.position.x = nestInstructions.position.x
+  nestPlacementInstructions.position.y = 0.95
+  result.add(nestPlacementInstructions)
 
 proc createItem(this: ItemPanel, sprite: Sprite, position: Position, scale: Vector, qty: int): Label =
   let boardImage = newButton(itemBoardSprite)
