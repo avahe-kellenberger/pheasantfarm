@@ -1,3 +1,2 @@
 .idea/
-
-.usr/lib/*.dll
+dist/

@@ -1,3 +1,5 @@
+import std/os
+
 # Package
 version = "0.1.0"
 author = "Einheit Technologies"
@@ -16,3 +18,15 @@ task runr, "Runs the game":
 task rund, "Runs the game in debug mode":
   exec "nim r -d:debug -d:collisionoutlines src/pheasantfarm.nim"
 
+task deploy, "Deploys a production release of the game":
+  exec "nim c -d:release --outdir:dist/pheasantfarm src/pheasantfarm.nim"
+  cpDir("assets", "dist/pheasantfarm/assets")
+  let sharedLibExt =
+    when defined(linux):
+      ".so"
+    else:
+      ".dll"
+  for sharedLibFile in listFiles(".usr/lib"):
+    if sharedLibFile.endsWith(sharedLibExt):
+      let filename = extractFilename(sharedLibFile)
+      cpFile(sharedLibFile, "dist/pheasantfarm/" & filename)
