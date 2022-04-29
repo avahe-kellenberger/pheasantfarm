@@ -74,6 +74,9 @@ proc tileToWorldCoord*(this: Grid, x, y: int): Vector =
     this.tileSize * y + this.tileSize * 0.5
   )
 
+template tileToWorldCoord*(this: Grid, tile: TileCoord): Vector =
+  this.tileToWorldCoord(tile.x, tile.y)
+
 proc worldCoordToTile*(this: Grid, x, y: float): TileCoord =
   let coord: TileCoord = (
     int floor(x / this.tileSize),
@@ -132,7 +135,8 @@ proc highlightTile*(
   tileX,
   tileY: int,
   color: Color = PURPLE,
-  renderText: bool = false
+  renderText: bool = false,
+  forceColor: bool = false
 ) =
   let
     left = tileX * this.tileSize
@@ -144,7 +148,7 @@ proc highlightTile*(
     top,
     left + this.tileSize,
     top + this.tileSize,
-    if numObjectsOnTile > 0:
+    if forceColor or numObjectsOnTile > 0:
       color
     else:
       GREEN
@@ -161,9 +165,10 @@ template highlightTile*(
   ctx: Target,
   coord: TileCoord,
   color: Color = RED,
-  renderText: bool = false
+  renderText: bool = false,
+  forceColor: bool = false
 ) =
-  this.highlightTile(ctx, coord.x, coord.y, color, renderText)
+  this.highlightTile(ctx, coord.x, coord.y, color, renderText, forceColor)
 
 proc render*(this: Grid, ctx: Target, camera: Camera) =
   for y in 0..this.height:
