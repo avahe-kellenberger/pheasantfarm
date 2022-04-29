@@ -27,7 +27,7 @@ proc initPanel*(panel: Panel) =
 
       let clickedCoord = vector(x, y) - panel.getLocation()
       for element in panel.elements:
-        if element.onClickHandler != nil and panel.elementContainsPoint(element, clickedCoord):
+        if element.visible and element.onClickHandler != nil and panel.elementContainsPoint(element, clickedCoord):
           element.onClickHandler()
   )
 

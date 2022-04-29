@@ -5,13 +5,14 @@ import shade
 import egg as eggModule
 import grid as gridModule
 import ui/hud as hudModule
-import ui/itempanel as itempanelModule
 import ui/shop as shopModule
 import grass as grassModule
 import player as playerModule
 import pheasant as pheasantModule
 import ui/overlay as overlayModule
 import ui/summary as summaryModule
+import ui/itempanel as itempanelModule
+import ui/gameover as gameoverModule
 
 const
   numStartingPheasants = 15
@@ -33,6 +34,7 @@ type
     summary*: Summary
     shop*: Shop
     overlay*: Overlay
+    gameOverScreen*: GameOverScreen
 
     grid: Grid
     colliders: HashSet[PhysicsBody]
@@ -123,13 +125,28 @@ proc newGameLayer*(grid: Grid): GameLayer =
   )
   Game.hud.addChild(result.shop)
 
-  result.summary = newSummary(proc() = this.openShop)
+  result.summary = newSummary(
+    proc() =
+      if this.money >= 0:
+        this.openShop()
+      else:
+        this.gameOverScreen.visible = true
+  )
   result.summary.visible = false
   result.summary.setLocation(
     getLocationInParent(this.summary.position, gamestate.resolution) +
     vector(gamestate.resolution.x * 0.5, gamestate.resolution.y * 0.45)
   )
   Game.hud.addChild(result.summary)
+
+  result.gameOverScreen = newGameOverScreen()
+  result.gameOverScreen.visible = false
+  result.gameOverScreen.setLocation(
+    getLocationInParent(result.gameOverScreen.position, gamestate.resolution) +
+    vector(gamestate.resolution.x * 0.5, gamestate.resolution.y * 0.45)
+  )
+  result.gameOverScreen.size = gamestate.resolution
+  Game.hud.addChild(result.gameOverScreen)
 
   gamestate.onResolutionChanged:
     this.hud.setLocation(
@@ -157,6 +174,12 @@ proc newGameLayer*(grid: Grid): GameLayer =
       getLocationInParent(this.summary.position, gamestate.resolution) +
       vector(gamestate.resolution.x * 0.5, gamestate.resolution.y * 0.45)
     )
+
+    this.gameOverScreen.setLocation(
+      getLocationInParent(this.gameOverScreen.position, gamestate.resolution) +
+      vector(gamestate.resolution.x * 0.5, gamestate.resolution.y * 0.45)
+    )
+    this.gameOverScreen.size = gamestate.resolution
 
   result.grid = grid
   result.colliders = initHashSet[PhysicsBody]()
@@ -251,8 +274,20 @@ proc startNewDay*(this: GameLayer) =
 proc fadeIn*(this: GameLayer) =
   this.overlay.animationPlayer.play("fade-in")
 
+template isTaxDay(this: GameLayer): bool =
+  this.day mod 7 == 0
+
+proc removeEggsFromGame(this: GameLayer) =
+  for child in this.childIterator:
+    if child of Egg:
+      this.removeChild(child)
+      this.grid.removePhysicsBodies(Egg(child))
+
 proc loadNewDay*(this: GameLayer) =
+  this.removeEggsFromGame()
+
   inc this.day
+  this.summary.updateDaysTillTax(this.day)
   this.hud.setDay(this.day)
   this.overlay.setDay(this.day)
 
@@ -284,19 +319,21 @@ func calcTax(day: int): int =
   return day ^ 2
 
 proc openSummary(this: GameLayer) =
-  # TODO: Need a function to update tax price each day
-  # TODO: End game when money < 0
-  this.tax = calcTax(this.day)
-  this.money = max(0, this.money - this.tax)
-  this.summary.setTaxPrice(this.tax)
-
   this.summary.setEggCount(this.eggCount)
 
-  let total = eggModule.calcTotal(this.eggCount) - this.tax
+  let total = eggModule.calcTotal(this.eggCount)
   this.summary.setTotal(total)
 
   this.eggCount.clear()
-  this.money = max(0, this.money + total)
+  this.money = this.money + total
+
+  if this.isTaxDay:
+    this.tax = calcTax(this.day)
+    this.money = this.money - this.tax
+    this.summary.setTaxPrice(this.tax)
+    if this.money < 0:
+      this.summary.setOutOfFunds()
+
   this.updateHUDValues()
 
   let numPheasants = this.pheasants.len

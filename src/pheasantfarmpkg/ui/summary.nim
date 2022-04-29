@@ -11,6 +11,9 @@ type Summary* = ref object of Panel
   eggLabels: Table[EggKind, Label]
   totalLabel: Label
   taxPriceLabel: Label
+  daysTillTaxLabel: Label
+  taxMoneyImage: Button
+  shopLabel: Label
 
 proc setupEggRow(this: Summary, eggKind: EggKind): Label =
   result = newLabel("00", WHITE)
@@ -62,21 +65,17 @@ proc newSummary*(goToShop: proc()): Summary =
     result.add(label)
     result.eggLabels[kind] = label
 
-  result.totalLabel = newLabel("Total: 0000", WHITE)
-  result.totalLabel.position.y = 0.55
-  result.add(result.totalLabel)
-
-  let shopBoard = newButton("./assets/shop_board.png")
-  shopBoard.scale = vector(0.75, 0.75)
-  shopBoard.position.y = 0.8
-  result.add(shopBoard)
+  let shopButton = newButton("./assets/shop_board.png")
+  shopButton.scale = vector(0.75, 0.75)
+  shopButton.position.y = 0.8
+  result.add(shopButton)
 
   # Taxes
 
   let ipsBuildingIcon = newButton("./assets/ips.png")
   ipsBuildingIcon.scale = vector(3.0, 3.0)
   ipsBuildingIcon.position.x = -0.3
-  ipsBuildingIcon.position.y = result.eggLabels[EggKind.GOLDEN].position.y + 0.2
+  ipsBuildingIcon.position.y = 0.38
   result.add(ipsBuildingIcon)
 
   let taxLabel = newLabel("tax:", WHITE)
@@ -84,25 +83,34 @@ proc newSummary*(goToShop: proc()): Summary =
   taxLabel.position.y = ipsBuildingIcon.position.y
   result.add(taxLabel)
 
-  result.taxPriceLabel = newLabel("0000", WHITE)
+  const taxColor = newColor(160, 20, 20)
+  result.taxPriceLabel = newLabel("0000", taxColor)
   result.taxPriceLabel.position.x = 0.18
   result.taxPriceLabel.position.y = ipsBuildingIcon.position.y + 0.15
   result.add(result.taxPriceLabel)
 
-  let moneyImage = newButton("./assets/money.png")
-  moneyImage.scale = vector(2.8, 2.8)
-  moneyImage.position.x = -0.35
-  moneyImage.position.y = result.taxPriceLabel.position.y
-  result.add(moneyImage)
+  result.taxMoneyImage = newButton("./assets/money.png")
+  result.taxMoneyImage.scale = vector(2.8, 2.8)
+  result.taxMoneyImage.position.x = -0.4
+  result.taxMoneyImage.position.y = result.taxPriceLabel.position.y
+  result.add(result.taxMoneyImage)
+
+  result.totalLabel = newLabel("Total: 0000", WHITE)
+  result.totalLabel.position.y = result.eggLabels[EggKind.GOLDEN].position.y + 0.2
+  result.add(result.totalLabel)
+
+  result.daysTillTaxLabel = newLabel("", taxColor)
+  result.daysTillTaxLabel.position.y = result.taxPriceLabel.position.y + 0.04
+  result.add(result.daysTillTaxLabel)
 
   let this = result
-  shopBoard.onClick:
+  shopButton.onClick:
     this.visible = false
     goToShop()
 
-  let shopLabel = newLabel("Shop", WHITE)
-  shopLabel.position.y = shopBoard.position.y
-  result.add(shopLabel)
+  result.shopLabel = newLabel("Shop", WHITE)
+  result.shopLabel.position.y = shopButton.position.y
+  result.add(result.shopLabel)
 
 proc setEggCount*(this: Summary, eggCount: CountTable[EggKind]) =
   for kind, label in this.eggLabels.pairs():
@@ -112,5 +120,26 @@ proc setTotal*(this: Summary, total: int) =
   this.totalLabel.setText("Total: " & $total)
 
 proc setTaxPrice*(this: Summary, tax: int) =
-  this.taxPriceLabel.setText(formatInt(tax, 4))
+  this.taxPriceLabel.setText("-" & formatInt(tax, 4))
+
+proc updateDaysTillTax*(this: Summary, currentDay: int) =
+  let
+    dayMod = currentDay mod 7
+    daysTill = 7 - dayMod
+
+  if dayMod != 0:
+    this.daysTillTaxLabel.visible = true
+    if daysTill == 1:
+      this.daysTillTaxLabel.setText($daysTill & " day left")
+    else:
+      this.daysTillTaxLabel.setText($daysTill & " days left")
+    this.taxMoneyImage.visible = false
+    this.taxPriceLabel.visible = false
+  else:
+    this.daysTillTaxLabel.visible = false
+    this.taxMoneyImage.visible = true
+    this.taxPriceLabel.visible = true
+
+proc setOutOfFunds*(this: Summary) =
+  this.shopLabel.setText("Next")
 

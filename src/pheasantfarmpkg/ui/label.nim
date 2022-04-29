@@ -34,6 +34,12 @@ proc newLabel*(
   result = Label()
   initLabel(result, text, color, renderFilter)
 
+proc setColor*(this: Label, color: Color) =
+  this.color = color
+  if this.imageOfText != nil:
+    freeImage(this.imageOfText)
+    this.imageOfText = nil
+
 proc setText*(this: Label, text: string) =
   this.text = text
   if this.imageOfText != nil:

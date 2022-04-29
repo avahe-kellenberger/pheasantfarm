@@ -106,7 +106,11 @@ proc setTimeRemaining*(this: HUD, timeInSeconds: int) =
   this.timeRemainingLabel.setText(formatInt(timeInSeconds, 2))
 
 proc setMoney*(this: HUD, money: int) =
-  this.moneyLabel.setText(formatInt(money, 4))
+  var displayValue = money
+  if displayValue < 0:
+    displayValue = 0
+    this.moneyLabel.setColor(RED)
+  this.moneyLabel.setText(formatInt(displayValue, 4))
 
 proc setEggCount*(this: HUD, kind: EggKind, count: int) =
   case kind:
