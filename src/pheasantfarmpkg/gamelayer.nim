@@ -22,6 +22,7 @@ const
   startingMoney = 50
   startingPheedCount = 20
   startingWaterCount = 20
+  taxDayFrequency = 3
 
 var
   song: Music
@@ -325,7 +326,7 @@ proc fadeIn*(this: GameLayer) =
   this.overlay.animationPlayer.play("fade-in")
 
 template isTaxDay(this: GameLayer): bool =
-  this.day mod 7 == 0
+  this.day mod taxDayFrequency == 0
 
 proc clearEggsAndNests(this: GameLayer) =
   for child in this.childIterator:
@@ -339,7 +340,7 @@ proc loadNewDay*(this: GameLayer) =
   this.clearEggsAndNests()
 
   inc this.day
-  this.summary.updateDaysTillTax(this.day)
+  this.summary.updateDaysTillTax(this.day, taxDayFrequency)
   this.hud.setDay(this.day)
   this.overlay.setDay(this.day)
 
@@ -387,7 +388,7 @@ proc updateHUDValues(this: GameLayer) =
     this.hud.setEggCount(kind, this.eggCount[kind])
 
 func calcTax(day: int): int =
-  return day ^ 3
+  return int pow(float day, 2.2)
 
 proc openSummary(this: GameLayer) =
   this.summary.setEggCount(this.eggCount)
