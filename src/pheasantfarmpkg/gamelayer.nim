@@ -231,7 +231,6 @@ proc newGameLayer*(grid: Grid): GameLayer =
          this.player.isControllable and
          not this.player.isHoldingNest and
          this.nestCount > 0:
-          echo "USE NEST"
           # TODO: "Use" nest
           this.player.isHoldingNest = true
           this.player.updateAnimation()
