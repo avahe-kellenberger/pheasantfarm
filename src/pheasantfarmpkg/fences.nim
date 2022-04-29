@@ -9,7 +9,7 @@ type
     BOTTOM
     LEFT
     RIGHT
-  Fence = ref object of PhysicsBody
+  Fence* = ref object of PhysicsBody
     sprite: Sprite
     lengthInTiles: int
     alignment: FenceAlignment

@@ -221,23 +221,29 @@ proc newGameLayer*(grid: Grid): GameLayer =
     this.spawnPhesant(PheasantKind.COMMON)
   this.spawnPhesant(PheasantKind.GRAY_PEACOCK)
 
+proc isBlocking(body: PhysicsBody): bool =
+  return not (body of Egg)
+
 proc spawnPhesant(this: GameLayer, kind: PheasantKind) =
-  let pheasant = createNewPheasant(kind)
-  pheasant.setLocation(
-    this.grid.bounds.center +
-    vector(rand(-120.0 .. 120.0), rand(-80.0 .. 80.0))
-  )
+  let
+    pheasant = createNewPheasant(kind)
+    tile = this.grid.getRandomAvailableTile(isBlocking)
+
+  if tile != NULL_TILE:
+    pheasant.setLocation(this.grid.getRandomPointInTile(tile))
+
   this.addChild(pheasant)
   this.pheasants.add(pheasant)
 
   this.itemPanel.setPheasantCount(this.pheasants.len)
 
 proc spawnEgg(this: GameLayer, kind: EggKind) =
-  let egg = newEgg(kind)
-  egg.setLocation vector(
-    rand((this.grid.bounds.left + this.grid.tileSize + 4) .. (this.grid.bounds.right - this.grid.tileSize - 4)),
-    rand((this.grid.bounds.top + this.grid.tileSize + 4) .. (this.grid.bounds.bottom - this.grid.tileSize * 2 - 4))
-  )
+  let
+    egg = newEgg(kind)
+    tile = this.grid.getRandomAvailableTile(isBlocking)
+
+  if tile != NULL_TILE:
+    egg.setLocation(this.grid.getRandomPointInTile(tile))
 
   egg.addCollisionListener(
     proc(bodyA, bodyB: PhysicsBody, r: CollisionResult, gravityNormal: Vector): bool =

@@ -1,5 +1,5 @@
 import shade, safeset, seq2d
-import options
+import options, random
 import ui/fontloader
 
 export safeset, options
@@ -13,6 +13,8 @@ type
     height*: int
     tileSize*: float
     bounds*: AABB
+
+const NULL_TILE* = (-1, -1)
 
 proc newTile(): Tile =
   return newSafeset[PhysicsBody]()
@@ -86,6 +88,31 @@ proc worldCoordToTile*(this: Grid, x, y: float): Option[TileCoord] =
 
 template worldCoordToTile*(this: Grid, loc: Vector): Option[TileCoord] =
   this.worldCoordToTile(loc.x, loc.y)
+
+proc getRandomPointInTile*(this: Grid, tileCoord: TileCoord): Vector =
+  result.x = this.tileSize * tileCoord.x + rand(0.0 .. this.tileSize)
+  result.y = this.tileSize * tileCoord.y + rand(0.0 .. this.tileSize)
+
+proc getRandomAvailableTile*(this: Grid, isBlocking: proc(body: PhysicsBody): bool): TileCoord =
+  let
+    width = this.width - 2
+    height = this.height - 3
+
+  var availableTiles: seq[TileCoord] = newSeqOfCap[TileCoord](width * height)
+  for y in 1 .. height:
+    for x in 1 .. width:
+
+      block bodyCheck:
+        for body in this[x, y]:
+          if isBlocking(body):
+            break bodyCheck
+
+        availableTiles.add((x, y))
+
+  if availableTiles.len > 0:
+    return availableTiles[rand(0 .. availableTiles.high)]
+  else:
+    return NULL_TILE
 
 proc highlightTile*(this: Grid, ctx: Target, tileX, tileY: int, color: Color = PURPLE) =
   let
