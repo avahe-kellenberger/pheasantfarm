@@ -98,10 +98,10 @@ proc update*(this: Overlay, deltaTime: float) =
 method render*(this: Overlay, ctx: Target, callback: proc() = nil) =
   if this.visible:
     ctx.rectangleFilled(
-      0,
-      0,
-      this.size.x,
-      this.size.y,
+      -1,
+      -1,
+      this.size.x + 1,
+      this.size.y + 1,
       this.currentColor
     )
 
