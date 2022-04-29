@@ -11,7 +11,8 @@ when isMainModule:
     1920,
     1080,
     fullscreen = true,
-    clearColor = newColor(26, 136, 24)
+    clearColor = newColor(26, 136, 24),
+    iconFilename = "./assets/common_pheasant.png"
   )
 
   Game.hud = newLayer()
