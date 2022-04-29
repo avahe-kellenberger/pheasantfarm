@@ -1,8 +1,8 @@
 import shade, safeset, seq2d
-import options, random
+import random
 import ui/fontloader
 
-export safeset, options
+export safeset
 
 type
   Tile* = Safeset[PhysicsBody]
@@ -74,7 +74,7 @@ proc tileToWorldCoord*(this: Grid, x, y: int): Vector =
     this.tileSize * y + this.tileSize * 0.5
   )
 
-proc worldCoordToTile*(this: Grid, x, y: float): Option[TileCoord] =
+proc worldCoordToTile*(this: Grid, x, y: float): TileCoord =
   let coord: TileCoord = (
     int floor(x / this.tileSize),
     int floor(y / this.tileSize)
@@ -82,16 +82,28 @@ proc worldCoordToTile*(this: Grid, x, y: float): Option[TileCoord] =
 
   if coord.x < 0 or coord.x >= this.width or
      coord.y < 0 or coord.y >= this.height:
-      return none(TileCoord)
+      return NULL_TILE
 
-  return option(coord)
+  return coord
 
-template worldCoordToTile*(this: Grid, loc: Vector): Option[TileCoord] =
+template worldCoordToTile*(this: Grid, loc: Vector): TileCoord =
   this.worldCoordToTile(loc.x, loc.y)
 
 proc getRandomPointInTile*(this: Grid, tileCoord: TileCoord): Vector =
   result.x = this.tileSize * tileCoord.x + rand(0.0 .. this.tileSize)
   result.y = this.tileSize * tileCoord.y + rand(0.0 .. this.tileSize)
+
+proc isTileAvailable*(this: Grid, tile: TileCoord, isBlocking: proc(body: PhysicsBody): bool): bool =
+  if tile.x < 0 or tile.x >= this.width:
+    return false
+
+  if tile.y < 0 or tile.y >= this.height:
+    return false
+
+  for body in this[tile.x, tile.y]:
+    if isBlocking(body):
+      return false
+  return true
 
 proc getRandomAvailableTile*(this: Grid, isBlocking: proc(body: PhysicsBody): bool): TileCoord =
   let
@@ -114,7 +126,14 @@ proc getRandomAvailableTile*(this: Grid, isBlocking: proc(body: PhysicsBody): bo
   else:
     return NULL_TILE
 
-proc highlightTile*(this: Grid, ctx: Target, tileX, tileY: int, color: Color = PURPLE) =
+proc highlightTile*(
+  this: Grid,
+  ctx: Target,
+  tileX,
+  tileY: int,
+  color: Color = PURPLE,
+  renderText: bool = false
+) =
   let
     left = tileX * this.tileSize
     top = tileY * this.tileSize
@@ -131,13 +150,20 @@ proc highlightTile*(this: Grid, ctx: Target, tileX, tileY: int, color: Color = P
       GREEN
   )
 
-  let textbox = newTextBox(getFont(), $numObjectsOnTile, renderFilter = FILTER_NEAREST)
-  textbox.scale = vector(0.08, 0.08)
-  textbox.setLocation(vector(left, top) + vector(this.tileSize * 0.5, this.tileSize * 0.5))
-  textbox.render(ctx)
+  if renderText:
+    let textbox = newTextBox(getFont(), $numObjectsOnTile, renderFilter = FILTER_NEAREST)
+    textbox.scale = vector(0.08, 0.08)
+    textbox.setLocation(vector(left, top) + vector(this.tileSize * 0.5, this.tileSize * 0.5))
+    textbox.render(ctx)
 
-template highlightTile*(this: Grid, ctx: Target, coord: TileCoord, color: Color = PURPLE) =
-  this.highlightTile(ctx, coord.x, coord.y, color)
+template highlightTile*(
+  this: Grid,
+  ctx: Target,
+  coord: TileCoord,
+  color: Color = RED,
+  renderText: bool = false
+) =
+  this.highlightTile(ctx, coord.x, coord.y, color, renderText)
 
 proc render*(this: Grid, ctx: Target, camera: Camera) =
   for y in 0..this.height:

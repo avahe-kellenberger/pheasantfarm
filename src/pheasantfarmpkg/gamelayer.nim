@@ -60,6 +60,10 @@ proc openSummary(this: GameLayer)
 proc spawnPhesant(this: GameLayer, kind: PheasantKind)
 proc spawnEgg(this: GameLayer, kind: EggKind)
 proc onEggCollected(this: GameLayer, egg: Egg)
+proc getTilePlayerIsFacing(this: GameLayer): TileCoord
+proc isTileInPlayArea(this: GameLayer, tile: TileCoord): bool
+proc placeNest(this: GameLayer, tile: TileCoord)
+proc isBlocking(body: PhysicsBody): bool
 
 proc playMusic(fadeInTime: float = 0.0) =
   discard capture fadeInMusic(song, fadeInTime, 0.25)
@@ -231,7 +235,6 @@ proc newGameLayer*(grid: Grid): GameLayer =
          this.player.isControllable and
          not this.player.isHoldingNest and
          this.nestCount > 0:
-          # TODO: "Use" nest
           this.player.isHoldingNest = true
           this.player.updateAnimation()
   )
@@ -242,9 +245,10 @@ proc newGameLayer*(grid: Grid): GameLayer =
       if state.justPressed and
          this.player.isControllable and
          this.player.isHoldingNest:
-          # TODO: Place nest if holding one
-          this.player.isHoldingNest = false
-          this.player.updateAnimation()
+           let placementTile = this.getTilePlayerIsFacing()
+           if this.isTileInPlayArea(placementTile):
+             if this.grid.isTileAvailable(placementTile, proc(body: PhysicsBody): bool = true):
+               this.placeNest(placementTile)
   )
 
 proc isBlocking(body: PhysicsBody): bool =
@@ -486,21 +490,41 @@ proc updateTimer(this: GameLayer, deltaTime: float) =
       this.overlay.animationPlayer.play("fade-out")
       this.overlay.animationPlayer.update(15 - this.timeRemaining)
 
+proc getTilePlayerIsFacing(this: GameLayer): TileCoord =
+  var playerLoc = this.player.getLocation()
+  playerLoc.x += this.grid.tileSize * float this.player.direction.x
+  playerLoc.y += this.grid.tileSize * float this.player.direction.y
+  return this.grid.worldCoordToTile(playerLoc.x, playerLoc.y)
+
+proc isTileInPlayArea(this: GameLayer, tile: TileCoord): bool =
+  return
+    tile.x >= 1 and tile.x <= this.grid.width - 2 and
+    tile.y >= 1 and tile.y <= this.grid.height - 3
+
+proc placeNest(this: GameLayer, tile: TileCoord) =
+  # TODO: Place nest
+  this.player.isHoldingNest = false
+  this.player.updateAnimation()
+
 method update*(this: GameLayer, deltaTime: float, onChildUpdate: proc(child: Node) = nil) =
   procCall Layer(this).update(deltaTime, onChildUpdate)
   this.checkCollisions()
   this.updateTimer(deltaTime)
   this.overlay.update(deltaTime)
 
-when defined(debug):
-  method render*(this: GameLayer, ctx: Target, callback: proc() = nil) =
-    let camera = Game.scene.camera
+method render*(this: GameLayer, ctx: Target, callback: proc() = nil) =
+  let camera = Game.scene.camera
+  when defined(debug):
     this.grid.render(ctx, camera)
     let mouseInWorldSpace = camera.screenToWorldCoord(Input.mouseLocation, this.z - camera.z)
-    let tileOpt = this.grid.worldCoordToTile(mouseInWorldSpace)
-    if tileOpt.isSome():
-      let tile = tileOpt.get()
+    let tile = this.grid.worldCoordToTile(mouseInWorldSpace)
+    if tile != NULL_TILE:
+      this.grid.highlightTile(ctx, tile, PURPLE, true)
+
+  if this.player.isControllable and this.player.isHoldingNest:
+    let tile = this.getTilePlayerIsFacing()
+    if this.isTileInPlayArea(tile):
       this.grid.highlightTile(ctx, tile)
 
-    procCall Layer(this).render(ctx, callback)
+  procCall Layer(this).render(ctx, callback)
 

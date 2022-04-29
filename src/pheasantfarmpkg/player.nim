@@ -23,7 +23,7 @@ type
     isControllable*: bool
     animationPlayer*: AnimationPlayer
     sprite*: Sprite
-    direction: IVector
+    direction*: IVector
     isHoldingNest*: bool
 
 const
@@ -133,7 +133,7 @@ proc createPlayerSprite(this: Player): Sprite =
   result = newSprite(image, 6, 3)
 
 proc createCollisionShape(scale: Vector): CollisionShape =
-  result = newCollisionShape(newAABB(-2, -2, 2, 0).getScaledInstance(scale))
+  result = newCollisionShape(newAABB(-2, -4, 2, 0).getScaledInstance(scale))
 
 proc createAnimPlayer(this: Player): AnimationPlayer =
   result = newAnimationPlayer()
