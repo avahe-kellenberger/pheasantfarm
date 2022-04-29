@@ -18,7 +18,7 @@ type Shop* = ref object of Panel
   tryPurchase: proc(item: Item, qty: int)
 
 proc buy*(this: Shop, item: Item, qty: int)
-proc createItem(this: Shop, item: Item, position: Position, scale: Vector, qty: int)
+proc createItem(this: Shop, item: Item, position: Position, qty: int)
 
 proc newShop*(tryPurchase: proc(item: Item, qty: int), onExit: proc()): Shop =
   result = Shop()
@@ -57,17 +57,17 @@ proc newShop*(tryPurchase: proc(item: Item, qty: int), onExit: proc()): Shop =
     topBoardYPosition = -0.28
     yDistance = 0.44
 
-  result.createItem(PHEED, newPosition(-0.6, topBoardYPosition), vector(4, 4), 1)
-  result.createItem(PHEED, newPosition(-0.6, topBoardYPosition + yDistance), vector(4, 4), 10)
-  result.createItem(PHEED, newPosition(-0.6, topBoardYPosition + yDistance * 2), vector(4, 4), 50)
+  result.createItem(PHEED, newPosition(-0.6, topBoardYPosition), 1)
+  result.createItem(PHEED, newPosition(-0.6, topBoardYPosition + yDistance), 10)
+  result.createItem(PHEED, newPosition(-0.6, topBoardYPosition + yDistance * 2), 50)
 
-  result.createItem(WATER, newPosition(0.0, topBoardYPosition), vector(4, 4), 1)
-  result.createItem(WATER, newPosition(0.0, topBoardYPosition + yDistance), vector(4, 4), 10)
-  result.createItem(WATER, newPosition(0.0, topBoardYPosition + yDistance * 2), vector(4, 4), 50)
+  result.createItem(WATER, newPosition(0.0, topBoardYPosition), 1)
+  result.createItem(WATER, newPosition(0.0, topBoardYPosition + yDistance), 10)
+  result.createItem(WATER, newPosition(0.0, topBoardYPosition + yDistance * 2), 50)
 
-  result.createItem(NEST, newPosition(0.6, topBoardYPosition), vector(4.5, 4.5), 1)
-  result.createItem(NEST, newPosition(0.6, topBoardYPosition + yDistance), vector(4.5, 4.5), 10)
-  result.createItem(NEST, newPosition(0.6, topBoardYPosition + yDistance * 2), vector(4.5, 4.5), 50)
+  result.createItem(NEST, newPosition(0.6, topBoardYPosition), 1)
+  result.createItem(NEST, newPosition(0.6, topBoardYPosition + yDistance), 10)
+  result.createItem(NEST, newPosition(0.6, topBoardYPosition + yDistance * 2), 50)
 
   let
     (_, exitImage) = Images.loadImage("./assets/x.png")
@@ -85,7 +85,7 @@ proc newShop*(tryPurchase: proc(item: Item, qty: int), onExit: proc()): Shop =
     this.visible = false
     onExit()
 
-proc createItem(this: Shop, item: Item, position: Position, scale: Vector, qty: int) =
+proc createItem(this: Shop, item: Item, position: Position, qty: int) =
   let board = newButton(shopBoardSprite)
   board.position = position
   this.add(board)
@@ -94,28 +94,22 @@ proc createItem(this: Shop, item: Item, position: Position, scale: Vector, qty: 
 
   let totalPrice: int = ITEM_PRICES[item] * qty
 
-  var
-    sprite: Sprite
-    offset: float
-
-  case item:
-    of PHEED:
-      sprite = pheedSprite
-      offset = 0.18
-    of WATER:
-      sprite = waterSprite
-      offset = 0.22
-    of NEST:
-      sprite = nestSprite
-      offset = 0.2
+  let sprite =
+    case item:
+      of PHEED:
+        pheedSprite
+      of WATER:
+        waterSprite
+      of NEST:
+        nestSprite
 
   let itemButton = newButton(sprite)
-  itemButton.scale = scale
+  itemButton.scale = vector(3, 3)
   itemButton.position = newPosition(board.position.x - 0.25, board.position.y)
   this.add(itemButton)
 
   let multiply = newButton(multiplySprite)
-  multiply.position.x = itemButton.position.x + offset
+  multiply.position.x = itemButton.position.x + 0.18
   multiply.position.y = itemButton.position.y
   this.add(multiply)
 

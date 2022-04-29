@@ -16,8 +16,7 @@ type ItemPanel* = ref object of Panel
   waterCountLabel: Label
   nestCountLabel: Label
 
-proc createItem(this: ItemPanel, sprite: Sprite, position: Position, scale: Vector, qty: int): Label
-
+proc createItem(this: ItemPanel, sprite: Sprite, position: Position, scale: Vector = vector(3, 3)): Label
 proc setPheasantCount*(this: ItemPanel, count: int)
 proc setPheedCount*(this: ItemPanel, count: int)
 proc setWaterCount*(this: ItemPanel, count: int)
@@ -43,17 +42,18 @@ proc newItemPanel*(): ItemPanel =
     waterSprite = newSprite(Images.loadImage("./assets/water_icon.png", FILTER_NEAREST).image)
     nestSprite = newSprite(Images.loadImage("./assets/nest_icon.png", FILTER_NEAREST).image)
 
+  const xPosition = -0.85
   result.pheasantCountLabel = 
-    result.createItem(pheasantSprite, newPosition(-0.9, -0.6), vector(4.0, 4.0), 0)
+    result.createItem(pheasantSprite, newPosition(xPosition, -0.6), vector(4, 4))
 
   result.pheedCountLabel =
-    result.createItem(pheedSprite, newPosition(-0.9, -0.2), vector(3.0, 3.0), 0)
+    result.createItem(pheedSprite, newPosition(xPosition, -0.2))
 
   result.waterCountLabel =
-    result.createItem(waterSprite, newPosition(-0.9, 0.2), vector(3.0, 3.0), 0)
+    result.createItem(waterSprite, newPosition(xPosition, 0.2))
 
   result.nestCountLabel =
-    result.createItem(nestSprite, newPosition(-0.9, 0.6), vector(4.0, 4.0), 0)
+    result.createItem(nestSprite, newPosition(xPosition, 0.6))
 
   let nestInstructions = newLabel("Press Q to use Nest", WHITE)
   nestInstructions.font = instructionsFont
@@ -67,7 +67,7 @@ proc newItemPanel*(): ItemPanel =
   nestPlacementInstructions.position.y = 0.95
   result.add(nestPlacementInstructions)
 
-proc createItem(this: ItemPanel, sprite: Sprite, position: Position, scale: Vector, qty: int): Label =
+proc createItem(this: ItemPanel, sprite: Sprite, position: Position, scale: Vector = vector(3, 3)): Label =
   let boardImage = newButton(itemBoardSprite)
   boardImage.position = newPosition(0.0, position.y)
   this.add(boardImage)
@@ -83,7 +83,7 @@ proc createItem(this: ItemPanel, sprite: Sprite, position: Position, scale: Vect
   multiply.position.y = itemButton.position.y
   this.add(multiply)
 
-  result = newLabel($qty, WHITE)
+  result = newLabel("0", WHITE)
   result.position.x = multiply.position.x + 0.5
   result.position.y = multiply.position.y
   this.add(result)
