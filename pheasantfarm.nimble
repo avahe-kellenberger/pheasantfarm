@@ -19,7 +19,7 @@ task rund, "Runs the game in debug mode":
   exec "nim r -d:debug -d:collisionoutlines src/pheasantfarm.nim"
 
 task deploy, "Deploys a production release of the game":
-  exec "nim c -d:release --outdir:dist/pheasantfarm src/pheasantfarm.nim"
+  exec "nim c --app:gui -d:release --outdir:dist/pheasantfarm src/pheasantfarm.nim"
   cpDir("assets", "dist/pheasantfarm/assets")
   let sharedLibExt =
     when defined(linux):

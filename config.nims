@@ -1,6 +1,5 @@
 import os
 
-switch("app", "gui")
 switch("multimethods", "on")
 switch("import", "std/lenientops")
 
