@@ -500,6 +500,7 @@ proc shouldCheckBodies(body, bodyInGrid: PhysicsBody): bool =
   return true
 
 proc checkCollisions(this: GameLayer) =
+  # TODO only check physics bodies, not everything in the layer
   for child in this.childIterator:
     if child of PhysicsBody:
       let body = PhysicsBody(child)
@@ -510,6 +511,8 @@ proc checkCollisions(this: GameLayer) =
         continue
 
       for (x, y) in this.grid.findOverlappingTiles(bounds):
+        # TODO implement feature to query the grid by type of object
+        # TODO (using a mask where each bit in the mask maps to a list of a specific type of object)
         for bodyInGrid in this.grid[x, y]:
           if shouldCheckBodies(body, bodyInGrid):
             this.colliders.incl(bodyInGrid)
