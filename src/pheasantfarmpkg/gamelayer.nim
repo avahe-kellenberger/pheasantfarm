@@ -16,9 +16,13 @@ import ui/itempanel as itempanelModule
 import ui/gameover as gameoverModule
 
 const
-  numStartingPheasants = 15
+  numStartingPheasants = 10
   dayLengthInSeconds = 30
   fadeInDuration = 1.0
+  startingMoney = 50
+  startingPheedCount = 30
+  startingWaterCount = 30
+  taxDayFrequency = 4
 
 var
   song: Music
@@ -70,9 +74,19 @@ proc isBlocking(body: PhysicsBody): bool
 proc playMusic(fadeInTime: float = 0.0) =
   discard capture fadeInMusic(song, fadeInTime, 0.25)
 
+template loseCondition(this: GameLayer): bool =
+  this.money < 0 or (this.money == 0 and this.pheedCount == 0 and this.waterCount == 0)
+
+proc setStartingValues(this: GameLayer) =
+  this.money = startingMoney
+  this.pheedCount = startingPheedCount
+  this.waterCount = startingWaterCount
+
 proc newGameLayer*(grid: Grid): GameLayer =
   result = GameLayer()
   initLayer(Layer(result))
+
+  result.setStartingValues()
 
   # Play some music
   let (someSong, err) = capture loadMusic("./assets/music/joy-ride.ogg")
@@ -133,10 +147,10 @@ proc newGameLayer*(grid: Grid): GameLayer =
 
   result.summary = newSummary(
     proc() =
-      if this.money >= 0:
-        this.openShop()
-      else:
+      if this.loseCondition():
         this.gameOverScreen.visible = true
+      else:
+        this.openShop()
   )
   result.summary.visible = false
   result.summary.setLocation(
@@ -312,7 +326,7 @@ proc fadeIn*(this: GameLayer) =
   this.overlay.animationPlayer.play("fade-in")
 
 template isTaxDay(this: GameLayer): bool =
-  this.day mod 7 == 0
+  this.day mod taxDayFrequency == 0
 
 proc clearEggsAndNests(this: GameLayer) =
   for child in this.childIterator:
@@ -326,7 +340,7 @@ proc loadNewDay*(this: GameLayer) =
   this.clearEggsAndNests()
 
   inc this.day
-  this.summary.updateDaysTillTax(this.day)
+  this.summary.updateDaysTillTax(this.day, taxDayFrequency)
   this.hud.setDay(this.day)
   this.overlay.setDay(this.day)
 
@@ -355,8 +369,6 @@ proc loadNewDay*(this: GameLayer) =
   )
 
   for pheasant in this.pheasants:
-    this.spawnEgg(getEggKind(pheasant.pheasantKind))
-
     if pheedUsed > 0:
       this.spawnEgg(getEggKind(pheasant.pheasantKind))
       dec pheedUsed
@@ -376,7 +388,7 @@ proc updateHUDValues(this: GameLayer) =
     this.hud.setEggCount(kind, this.eggCount[kind])
 
 func calcTax(day: int): int =
-  return day ^ 2
+  return int pow(float day, 2.2)
 
 proc openSummary(this: GameLayer) =
   this.summary.setEggCount(this.eggCount)
@@ -391,27 +403,25 @@ proc openSummary(this: GameLayer) =
     this.tax = calcTax(this.day)
     this.money = this.money - this.tax
     this.summary.setTaxPrice(this.tax)
-    if this.money < 0:
-      this.summary.setOutOfFunds()
+
+  if this.loseCondition():
+    this.summary.setOutOfFunds()
 
   this.updateHUDValues()
 
   this.summary.visible = true
 
 proc openShop(this: GameLayer) =
-  for i in 0 ..< 3:
-    this.spawnPhesant(PheasantKind.COMMON)
-
   # Spawn pheasants from nests
   for i in 0 ..< this.nestsOnGround:
     let randNum = rand(0..1000)
     let kind =
       case randNum:
-        of 951..1000:
+        of 981..1000:
           PheasantKind.GOLDEN
-        of 851-950:
+        of 891..980:
           PheasantKind.BLUE_EARED
-        of 651..850:
+        of 741..890:
           PheasantKind.GRAY_PEACOCK
         else:
           PheasantKind.COMMON

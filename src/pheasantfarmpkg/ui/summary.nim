@@ -122,10 +122,10 @@ proc setTotal*(this: Summary, total: int) =
 proc setTaxPrice*(this: Summary, tax: int) =
   this.taxPriceLabel.setText("-" & formatInt(tax, 4))
 
-proc updateDaysTillTax*(this: Summary, currentDay: int) =
+proc updateDaysTillTax*(this: Summary, currentDay, taxDayFrequency: int) =
   let
-    dayMod = currentDay mod 7
-    daysTill = 7 - dayMod
+    dayMod = currentDay mod taxDayFrequency
+    daysTill = taxDayFrequency - dayMod
 
   if dayMod != 0:
     this.daysTillTaxLabel.visible = true
