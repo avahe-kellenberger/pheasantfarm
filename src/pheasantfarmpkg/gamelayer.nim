@@ -575,7 +575,7 @@ proc placeNest(this: GameLayer, tile: TileCoord) =
         break
     # Create new nest using best egg
     let nest = newNest(bestEggKind)
-    nest.setLocation(this.grid.tileToWorldCoord(tile))
+    nest.setLocation(this.grid.tileToWorldCoord(tile) + vector(0, nest.sprite.size.y * 0.5))
     this.addChild(nest)
     this.grid.addPhysicsBodies(nest)
     dec this.nestCount

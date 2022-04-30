@@ -22,9 +22,10 @@ proc newNest*(eggKind: EggKind): Nest =
 
   result.sprite = newSprite(getNestImage(), 4, 1)
   result.sprite.frameCoords.x = ord(eggKind)
+  result.sprite.offset.y = -result.sprite.size.y * 0.5
   result.eggKind = eggKind
 
-  result.collisionShape = newCollisionShape(newAABB(-5, -2.5, 5.5, 2.5))
+  result.collisionShape = newCollisionShape(newAABB(-5.5, -5, 5.5, 0))
 
 Nest.renderAsChildOf(PhysicsBody):
   this.sprite.render(ctx)

@@ -18,9 +18,9 @@ proc newGrass*(): Grass =
   result.sprite.frameCoords.x = rand(5)
   result.sprite.frameCoords.y =
     if rand(10) > 8:
-      1
+      1 # flowers
     else:
-      0
+      0 # grass
 
   result.sprite.offset.y = -result.sprite.size.y * 0.5
 
