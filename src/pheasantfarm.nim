@@ -20,9 +20,6 @@ when isMainModule:
 
   Game.hud = newLayer()
 
-  let gridLayer = newLayer()
-  Game.scene.addLayer(gridLayer)
-
   let grid = newGrid(20, 13, 16)
   let layer = newGameLayer(grid)
   Game.scene.addLayer(layer)

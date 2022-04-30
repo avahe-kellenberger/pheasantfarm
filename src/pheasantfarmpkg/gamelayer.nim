@@ -42,6 +42,8 @@ type
     overlay*: Overlay
     gameOverScreen*: GameOverScreen
 
+    # Only dynamic physics bodies that require collision checks
+    bodies: SafeSet[PhysicsBody]
     grid: Grid
     colliders: HashSet[PhysicsBody]
 
@@ -223,6 +225,7 @@ proc newGameLayer*(grid: Grid): GameLayer =
     )
     this.gameOverScreen.size = gamestate.resolution
 
+  result.bodies = newSafeset[PhysicsBody]()
   result.grid = grid
   result.colliders = initHashSet[PhysicsBody]()
 
@@ -242,6 +245,7 @@ proc newGameLayer*(grid: Grid): GameLayer =
   result.player = newPlayer()
   result.player.setLocation(grid.bounds.center)
   result.addChild(result.player)
+  result.bodies.add(result.player)
 
   camera.setTrackedNode(result.player)
   camera.setTrackingEasingFunction(easeOutQuadratic)
@@ -289,6 +293,7 @@ proc spawnPhesant(this: GameLayer, kind: PheasantKind) =
     pheasant.setLocation(this.grid.getRandomPointInTile(tile))
 
   this.addChild(pheasant)
+  this.bodies.add(pheasant)
   this.pheasants.add(pheasant)
 
   this.itemPanel.setPheasantCount(this.pheasants.len)
@@ -500,27 +505,22 @@ proc shouldCheckBodies(body, bodyInGrid: PhysicsBody): bool =
   return true
 
 proc checkCollisions(this: GameLayer) =
-  # TODO only check physics bodies, not everything in the layer
-  for child in this.childIterator:
-    if child of PhysicsBody:
-      let body = PhysicsBody(child)
-      if body.kind == PhysicsBodyKind.STATIC:
-        continue
-      let bounds = body.getBounds()
-      if bounds == nil:
-        continue
+  for body in this.bodies:
+    let bounds = body.getBounds()
+    if bounds == nil:
+      continue
 
-      for (x, y) in this.grid.findOverlappingTiles(bounds):
-        # TODO implement feature to query the grid by type of object
-        # TODO (using a mask where each bit in the mask maps to a list of a specific type of object)
-        for bodyInGrid in this.grid[x, y]:
-          if shouldCheckBodies(body, bodyInGrid):
-            this.colliders.incl(bodyInGrid)
+    for (x, y) in this.grid.findOverlappingTiles(bounds):
+      # TODO implement feature to query the grid by type of object
+      # TODO (using a mask where each bit in the mask maps to a list of a specific type of object)
+      for bodyInGrid in this.grid[x, y]:
+        if shouldCheckBodies(body, bodyInGrid):
+          this.colliders.incl(bodyInGrid)
 
-      for collider in this.colliders:
-        this.resolveCollision(body, collider)
+    for collider in this.colliders:
+      this.resolveCollision(body, collider)
 
-      this.colliders.clear()
+    this.colliders.clear()
 
 proc onTimerEnd(this: GameLayer) =
   timeUpSound.play(0.4)
