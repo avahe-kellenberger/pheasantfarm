@@ -10,7 +10,7 @@ bin = @["pheasantfarm"]
 
 # Dependencies
 requires "nim >= 1.6.4"
-requires "https://github.com/avahe-kellenberger/shade#head"
+requires "https://github.com/avahe-kellenberger/shade"
 
 task runr, "Runs the game":
   exec "nim r -d:release src/pheasantfarm.nim"
