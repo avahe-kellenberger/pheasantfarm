@@ -2,6 +2,8 @@ import shade
 
 import std/tables
 
+import egg as eggModule
+
 var nestImageId = -1
 
 proc getNestImage*(): Image =
@@ -12,13 +14,15 @@ proc getNestImage*(): Image =
 
 type Nest* = ref object of PhysicsBody
   sprite*: Sprite
-  hasEgg: bool
+  eggKind*: EggKind
 
-proc newNest*(): Nest =
+proc newNest*(eggKind: EggKind): Nest =
   result = Nest(kind: PhysicsBodyKind.STATIC)
   initPhysicsBody(PhysicsBody(result))
 
-  result.sprite = newSprite(getNestImage())
+  result.sprite = newSprite(getNestImage(), 4, 1)
+  result.sprite.frameCoords.x = ord(eggKind)
+  result.eggKind = eggKind
 
   result.collisionShape = newCollisionShape(newAABB(-5, -2.5, 5.5, 2.5))
 

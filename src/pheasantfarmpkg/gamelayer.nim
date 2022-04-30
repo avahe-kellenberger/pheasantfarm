@@ -57,7 +57,7 @@ type
     invalidTile: TileCoord
     animPlayer: AnimationPlayer
 
-    nestsOnGround: int
+    nestsOnGround: seq[Nest]
     timeRemaining: float
     pheasants: seq[Pheasant]
     isTimeCountingDown*: bool
@@ -270,7 +270,7 @@ proc newGameLayer*(grid: Grid): GameLayer =
       if state.justPressed and
          this.nestCount > 0 and
          this.player.isControllable and
-         this.eggCount[EggKind.WHITE] > 0:
+         len(this.eggCount) > 0:
             let placementTile = this.getTilePlayerIsFacing()
             if this.isTileInPlayArea(placementTile):
               if this.grid.isTileAvailable(placementTile, isBlocking):
@@ -345,11 +345,9 @@ proc clearEggsAndNests(this: GameLayer) =
       this.removeChild(child)
       this.grid.removePhysicsBodies(PhysicsBody(child))
 
-  this.nestsOnGround = 0
+  this.nestsOnGround.setLen(0)
 
 proc loadNewDay*(this: GameLayer) =
-  this.clearEggsAndNests()
-
   inc this.day
   this.summary.updateDaysTillTax(this.day, taxDayFrequency)
   this.hud.setDay(this.day)
@@ -428,21 +426,27 @@ proc openSummary(this: GameLayer) =
 
 proc openShop(this: GameLayer) =
   # Spawn pheasants from nests
-  for i in 0 ..< this.nestsOnGround:
-    let randNum = rand(0..1000)
-    let kind =
-      case randNum:
-        of 981..1000:
-          PheasantKind.GOLDEN
-        of 891..980:
-          PheasantKind.BLUE_EARED
-        of 741..890:
-          PheasantKind.PURPLE_PEACOCK
-        else:
-          PheasantKind.COMMON
+  for nest in this.nestsOnGround:
+    var bestPheasantKind = PheasantKind.COMMON
+    let numRolls = ord(nest.eggKind) + 1
+    for _ in 0..<numRolls:
+      let randNum = rand(0..1000)
+      let kind =
+        case randNum:
+          of 981..1000:
+            PheasantKind.GOLDEN
+          of 891..980:
+            PheasantKind.BLUE_EARED
+          of 741..890:
+            PheasantKind.PURPLE_PEACOCK
+          else:
+            PheasantKind.COMMON
+      if kind > bestPheasantKind:
+        bestPheasantKind = kind
 
-    this.spawnPhesant(kind)
+    this.spawnPhesant(bestPheasantKind)
 
+  this.clearEggsAndNests()
   this.shop.visible = true
 
 proc tryPurchase(this: GameLayer, item: Item, qty: int) =
@@ -564,14 +568,20 @@ proc checkNestAndEggCollisions(this: GameLayer, nest: Nest, tile: TileCoord) =
 
 proc placeNest(this: GameLayer, tile: TileCoord) =
   if tile != NULL_TILE:
-    let nest = newNest()
+    var bestEggKind = EggKind.WHITE
+    for eggKind in countdown(EggKind.high, EggKind.low):
+      if this.eggCount[eggKind] > 0:
+        bestEggKind = eggKind
+        break
+    # Create new nest using best egg
+    let nest = newNest(bestEggKind)
     nest.setLocation(this.grid.tileToWorldCoord(tile))
     this.addChild(nest)
     this.grid.addPhysicsBodies(nest)
     dec this.nestCount
-    inc this.nestsOnGround
-    this.eggCount.inc(EggKind.WHITE, -1)
-    this.hud.setEggCount(EggKind.WHITE, this.eggCount[EggKind.WHITE])
+    this.nestsOnGround.add(nest)
+    this.eggCount.inc(bestEggKind, -1)
+    this.hud.setEggCount(bestEggKind, this.eggCount[bestEggKind])
     this.itemPanel.setNestCount(this.nestCount)
 
     this.checkNestAndEggCollisions(nest, tile)

@@ -43,7 +43,7 @@ proc newItemPanel*(): ItemPanel =
     nestSprite = newSprite(Images.loadImage("./assets/nest_icon.png", FILTER_NEAREST).image)
 
   const xPosition = -0.85
-  result.pheasantCountLabel = 
+  result.pheasantCountLabel =
     result.createItem(pheasantSprite, newPosition(xPosition, -0.6), vector(4, 4))
 
   result.pheedCountLabel =
@@ -61,7 +61,7 @@ proc newItemPanel*(): ItemPanel =
   nestInstructions.position.y = 0.85
   result.add(nestInstructions)
 
-  let nestRequirementLabel = newLabel("Requires white egg", WHITE)
+  let nestRequirementLabel = newLabel("(Uses best egg)", WHITE)
   nestRequirementLabel.font = instructionsFont
   nestRequirementLabel.position.x = nestInstructions.position.x
   nestRequirementLabel.position.y = 0.95
