@@ -1,9 +1,12 @@
+import std/random
 import shade
 
 import pheasantfarmpkg/[fences, gamelayer]
 import pheasantfarmpkg/ui/startmenu as startMenuModule
 import pheasantfarmpkg/player as playerModule
 import pheasantfarmpkg/grid as gridModule
+
+randomize()
 
 when isMainModule:
   initEngineSingleton(

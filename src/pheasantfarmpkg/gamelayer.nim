@@ -20,8 +20,8 @@ const
   dayLengthInSeconds = 30
   fadeInDuration = 1.0
   startingMoney = 50
-  startingPheedCount = 30
-  startingWaterCount = 30
+  startingPheedCount = numStartingPheasants * 2
+  startingWaterCount = numStartingPheasants * 2
   taxDayFrequency = 4
 
 var
@@ -75,18 +75,15 @@ proc playMusic(fadeInTime: float = 0.0) =
   discard capture fadeInMusic(song, fadeInTime, 0.25)
 
 template loseCondition(this: GameLayer): bool =
-  this.money < 0 or (this.money == 0 and this.pheedCount == 0 and this.waterCount == 0)
-
-proc setStartingValues(this: GameLayer) =
-  this.money = startingMoney
-  this.pheedCount = startingPheedCount
-  this.waterCount = startingWaterCount
+  this.money < 0
 
 proc newGameLayer*(grid: Grid): GameLayer =
   result = GameLayer()
   initLayer(Layer(result))
 
-  result.setStartingValues()
+  result.money = startingMoney
+  result.pheedCount = startingPheedCount
+  result.waterCount = startingWaterCount
 
   # Play some music
   let (someSong, err) = capture loadMusic("./assets/music/joy-ride.ogg")
@@ -118,7 +115,7 @@ proc newGameLayer*(grid: Grid): GameLayer =
 
   result.hud = newHUD()
   result.hud.setTimeRemaining(0)
-  result.hud.setMoney(0)
+  result.hud.setMoney(result.money)
   result.hud.visible = false
   result.hud.setLocation(
     getLocationInParent(result.hud.position, gamestate.resolution) +
@@ -127,6 +124,8 @@ proc newGameLayer*(grid: Grid): GameLayer =
   Game.hud.addChild(result.hud)
 
   result.itemPanel = newItemPanel()
+  result.itemPanel.setPheedCount(result.pheedCount)
+  result.itemPanel.setWaterCount(result.waterCount)
   result.itemPanel.visible = false
   result.itemPanel.setLocation(
     getLocationInParent(result.itemPanel.position, gamestate.resolution) +
@@ -352,30 +351,35 @@ proc loadNewDay*(this: GameLayer) =
   this.hud.setTimeRemaining(dayLengthInSeconds)
 
   let numPheasants = this.pheasants.len
-  
+
   var
     pheedUsed = min(this.pheedCount, numPheasants)
     waterUsed = min(this.waterCount, numPheasants)
+    bothUsed = min(pheedUsed, waterUsed)
 
   this.pheedCount -= pheedUsed
   this.waterCount -= waterUsed
   this.itemPanel.setPheedCount(this.pheedCount)
   this.itemPanel.setWaterCount(this.waterCount)
 
-  # Sort by rarity
-  this.pheasants.sort(
-    proc(p1, p2: Pheasant): int =
-      ord(p1.pheasantKind) - ord(p2.pheasantKind)
-  )
+  # Randomize pheasants
+  shuffle(this.pheasants)
 
   for pheasant in this.pheasants:
+    let eggKind = getEggKind(pheasant.pheasantKind)
+    this.spawnEgg(eggKind)
+
     if pheedUsed > 0:
-      this.spawnEgg(getEggKind(pheasant.pheasantKind))
+      this.spawnEgg(eggKind)
       dec pheedUsed
 
     if waterUsed > 0:
-      this.spawnEgg(getEggKind(pheasant.pheasantKind))
+      this.spawnEgg(eggKind)
       dec waterUsed
+
+    if bothUsed > 0:
+      this.spawnEgg(eggKind)
+      dec bothUsed
 
   playMusic()
 
@@ -388,7 +392,7 @@ proc updateHUDValues(this: GameLayer) =
     this.hud.setEggCount(kind, this.eggCount[kind])
 
 func calcTax(day: int): int =
-  return int pow(float day, 2.2)
+  return int pow(float day, 2.5)
 
 proc openSummary(this: GameLayer) =
   this.summary.setEggCount(this.eggCount)
@@ -476,7 +480,7 @@ proc resolveCollision(this: GameLayer, bodyA, bodyB: PhysicsBody) =
 proc checkCollisions(this: GameLayer) =
   for child in this.childIterator:
     if child of PhysicsBody:
-      let 
+      let
         body = PhysicsBody(child)
         bounds = body.getBounds()
 

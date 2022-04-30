@@ -2,8 +2,6 @@ import shade
 
 import std/random
 
-randomize()
-
 const speed = 16.0
 
 var
