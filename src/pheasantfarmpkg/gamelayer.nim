@@ -20,9 +20,9 @@ const
   dayLengthInSeconds = 30
   fadeInDuration = 1.0
   startingMoney = 50
-  startingPheedCount = numStartingPheasants * 2
-  startingWaterCount = numStartingPheasants * 2
-  startingNestCount = 5
+  startingPheedCount = 0 # numStartingPheasants * 2
+  startingWaterCount = 0 # numStartingPheasants * 2
+  startingNestCount = 0 # 2
   taxDayFrequency = 4
 
 var

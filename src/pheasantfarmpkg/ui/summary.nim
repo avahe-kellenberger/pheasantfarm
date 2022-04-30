@@ -65,6 +65,10 @@ proc newSummary*(goToShop: proc()): Summary =
     result.add(label)
     result.eggLabels[kind] = label
 
+  result.totalLabel = newLabel("Total: 0000", WHITE)
+  result.totalLabel.position.y = result.eggLabels[EggKind.GOLDEN].position.y + 0.2
+  result.add(result.totalLabel)
+
   let shopButton = newButton("./assets/shop_board.png")
   shopButton.scale = vector(0.75, 0.75)
   shopButton.position.y = 0.8
@@ -83,21 +87,17 @@ proc newSummary*(goToShop: proc()): Summary =
   taxLabel.position.y = ipsBuildingIcon.position.y
   result.add(taxLabel)
 
-  const taxColor = newColor(160, 20, 20)
-  result.taxPriceLabel = newLabel("0000", taxColor)
-  result.taxPriceLabel.position.x = 0.18
-  result.taxPriceLabel.position.y = ipsBuildingIcon.position.y + 0.15
-  result.add(result.taxPriceLabel)
-
   result.taxMoneyImage = newButton("./assets/money.png")
   result.taxMoneyImage.scale = vector(2.8, 2.8)
-  result.taxMoneyImage.position.x = -0.4
-  result.taxMoneyImage.position.y = result.taxPriceLabel.position.y
+  result.taxMoneyImage.position.x = -0.67
+  result.taxMoneyImage.position.y = ipsBuildingIcon.position.y + 0.15
   result.add(result.taxMoneyImage)
 
-  result.totalLabel = newLabel("Total: 0000", WHITE)
-  result.totalLabel.position.y = result.eggLabels[EggKind.GOLDEN].position.y + 0.2
-  result.add(result.totalLabel)
+  const taxColor = newColor(160, 20, 20)
+  result.taxPriceLabel = newLabel("0000", taxColor)
+  result.taxPriceLabel.position.x = result.taxMoneyImage.position.x + 0.82
+  result.taxPriceLabel.position.y = result.taxMoneyImage.position.y
+  result.add(result.taxPriceLabel)
 
   result.daysTillTaxLabel = newLabel("", taxColor)
   result.daysTillTaxLabel.position.y = result.taxPriceLabel.position.y + 0.04
@@ -120,7 +120,7 @@ proc setTotal*(this: Summary, total: int) =
   this.totalLabel.setText("Total: " & $total)
 
 proc setTaxPrice*(this: Summary, tax: int) =
-  this.taxPriceLabel.setText("-" & formatInt(tax, 4))
+  this.taxPriceLabel.setText("-" & formatInt(tax, 6))
 
 proc updateDaysTillTax*(this: Summary, currentDay, taxDayFrequency: int) =
   let
