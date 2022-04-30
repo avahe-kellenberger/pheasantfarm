@@ -50,7 +50,7 @@ proc newHUD*(): HUD =
   result.add(moneyImage)
 
   result.moneyLabel = newLabel("", WHITE)
-  result.moneyLabel.position.x = moneyImage.position.x + 0.17
+  result.moneyLabel.position.x = moneyImage.position.x + 0.20
   result.add(result.moneyLabel)
 
   # Eggs
@@ -110,7 +110,7 @@ proc setMoney*(this: HUD, money: int) =
   if displayValue < 0:
     displayValue = 0
     this.moneyLabel.setColor(RED)
-  this.moneyLabel.setText(formatInt(displayValue, 4))
+  this.moneyLabel.setText(formatInt(displayValue, 5))
 
 proc setEggCount*(this: HUD, kind: EggKind, count: int) =
   case kind:
