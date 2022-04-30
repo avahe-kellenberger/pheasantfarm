@@ -110,6 +110,8 @@ proc setMoney*(this: HUD, money: int) =
   if displayValue < 0:
     displayValue = 0
     this.moneyLabel.setColor(RED)
+  else:
+    this.moneyLabel.setColor(WHITE)
   this.moneyLabel.setText(formatInt(displayValue, 5))
 
 proc setEggCount*(this: HUD, kind: EggKind, count: int) =
