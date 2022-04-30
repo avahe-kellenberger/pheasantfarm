@@ -5,8 +5,6 @@ import strformat, tables
 import panel, ui, button, label, format, ../egg
 export ui, button, label
 
-const distBetweenText = 0.40
-
 type Summary* = ref object of Panel
   eggLabels: Table[EggKind, Label]
   totalLabel: Label
@@ -17,11 +15,11 @@ type Summary* = ref object of Panel
 
 proc setupEggRow(this: Summary, eggKind: EggKind): Label =
   result = newLabel("00", WHITE)
-  result.position.x = 0.65
+  result.position.x = 0.55
   result.position.y = -0.5 + ord(eggKind) * 0.15
 
   let eggImage = newButton(newSprite(getEggImage(), 4, 1))
-  eggImage.position.x = result.position.x - distBetweenText
+  eggImage.position.x = result.position.x - 0.48
   eggImage.position.y = result.position.y
   eggImage.sprite.frameCoords.x = ord(eggKind)
   eggImage.scale = vector(6.0, 6.0)
@@ -33,7 +31,7 @@ proc setupEggRow(this: Summary, eggKind: EggKind): Label =
   this.add(priceLabel)
 
   let multiply = newButton("./assets/multiply.png")
-  multiply.position.x = priceLabel.position.x + 0.4
+  multiply.position.x = priceLabel.position.x + 0.30
   multiply.position.y = priceLabel.position.y
   this.add(multiply)
 
@@ -114,7 +112,7 @@ proc newSummary*(goToShop: proc()): Summary =
 
 proc setEggCount*(this: Summary, eggCount: CountTable[EggKind]) =
   for kind, label in this.eggLabels.pairs():
-    label.setText(formatInt(eggCount[kind], 2))
+    label.setText(formatInt(eggCount[kind], 3))
 
 proc setTotal*(this: Summary, total: int) =
   this.totalLabel.setText("Total: " & $total)
