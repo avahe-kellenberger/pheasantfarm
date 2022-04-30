@@ -72,7 +72,7 @@ proc placeNest(this: GameLayer, tile: TileCoord)
 proc isBlocking(body: PhysicsBody): bool
 
 proc playMusic(fadeInTime: float = 0.0) =
-  discard capture fadeInMusic(song, fadeInTime, 0.25)
+  fadeInMusic(song, fadeInTime, 0.25)
 
 template loseCondition(this: GameLayer): bool =
   this.money < 0
@@ -86,12 +86,10 @@ proc newGameLayer*(grid: Grid): GameLayer =
   result.waterCount = startingWaterCount
 
   # Play some music
-  let (someSong, err) = capture loadMusic("./assets/music/joy-ride.ogg")
-  if err == nil:
+  let someSong = loadMusic("./assets/music/joy-ride.ogg")
+  if someSong != nil:
     song = someSong
     playMusic(3.0)
-  else:
-    echo "Error playing music: " & err.msg
 
   menuClickSound = loadSoundEffect("./assets/sfx/menu-click.wav")
   tooPoorSound = loadSoundEffect("./assets/sfx/poor.wav")
