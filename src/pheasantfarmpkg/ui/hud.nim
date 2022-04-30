@@ -10,7 +10,7 @@ type HUD* = ref object of Panel
   timeRemainingLabel: Label
   moneyLabel: Label
   eggTextWhite: Label
-  eggTextGray: Label
+  eggTextPurple: Label
   eggTextBlue: Label
   eggTextGolden: Label
 
@@ -77,18 +77,18 @@ proc newHUD*(): HUD =
   blueEggImage.scale = vector(6.0, 6.0)
   result.add(blueEggImage)
 
-  result.eggTextGray = newLabel("", WHITE)
-  result.eggTextGray.position.x = blueEggImage.position.x - distBetweenEggIcons
-  result.add(result.eggTextGray)
+  result.eggTextPurple = newLabel("", WHITE)
+  result.eggTextPurple.position.x = blueEggImage.position.x - distBetweenEggIcons
+  result.add(result.eggTextPurple)
 
-  let grayEggImage = newButton(newSprite(getEggImage(), 4, 1))
-  grayEggImage.position.x = result.eggTextGray.position.x - distBetweenEggIcons
-  grayEggImage.sprite.frameCoords.x = ord(EggKind.GRAY)
-  grayEggImage.scale = vector(6.0, 6.0)
-  result.add(grayEggImage)
+  let purpleEggImage = newButton(newSprite(getEggImage(), 4, 1))
+  purpleEggImage.position.x = result.eggTextPurple.position.x - distBetweenEggIcons
+  purpleEggImage.sprite.frameCoords.x = ord(EggKind.PURPLE)
+  purpleEggImage.scale = vector(6.0, 6.0)
+  result.add(purpleEggImage)
 
   result.eggTextWhite = newLabel("", WHITE)
-  result.eggTextWhite.position.x = grayEggImage.position.x - distBetweenEggIcons
+  result.eggTextWhite.position.x = purpleEggImage.position.x - distBetweenEggIcons
   result.add(result.eggTextWhite)
 
   let whiteEggImage = newButton(newSprite(getEggImage(), 4, 1))
@@ -116,8 +116,8 @@ proc setEggCount*(this: HUD, kind: EggKind, count: int) =
   case kind:
     of EggKind.WHITE:
       this.eggTextWhite.setText(formatInt(count, 2))
-    of EggKind.GRAY:
-      this.eggTextGray.setText(formatInt(count, 2))
+    of EggKind.PURPLE:
+      this.eggTextPurple.setText(formatInt(count, 2))
     of EggKind.BLUE:
       this.eggTextBlue.setText(formatInt(count, 2))
     of EggKind.GOLDEN:

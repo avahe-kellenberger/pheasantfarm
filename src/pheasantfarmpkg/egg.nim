@@ -13,7 +13,7 @@ proc getEggImage*(): Image =
 type
   EggKind* {.pure.} = enum
     WHITE
-    GRAY
+    PURPLE
     BLUE
     GOLDEN
   Egg* = ref object of PhysicsBody
@@ -22,7 +22,7 @@ type
 
 const EGG_PRICES* = {
   EggKind.WHITE: 1,
-  EggKind.GRAY: 5,
+  EggKind.PURPLE: 5,
   EggKind.BLUE: 10,
   EggKind.GOLDEN: 15
 }.toTable()

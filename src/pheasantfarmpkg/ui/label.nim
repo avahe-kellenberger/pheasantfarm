@@ -57,7 +57,7 @@ Label.renderAsChildOf(UIElement):
       if this.font != nil:
         this.font
       else:
-      fontloader.getFont()
+        fontloader.getFont()
 
     let surface = renderText_Blended_Wrapped(
       font,

@@ -6,14 +6,14 @@ const speed = 16.0
 
 var
   commonPheasantImageId = -1
-  grayPheasantImageId = -1
+  purplePheasantImageId = -1
   bluePheasantImageId = -1
   goldenPheasantImageId = -1
 
 type
   PheasantKind* {.pure.} = enum
     COMMON
-    GRAY_PEACOCK
+    PURPLE_PEACOCK
     BLUE_EARED
     GOLDEN
   PheasantAction* = enum
@@ -121,11 +121,11 @@ proc createPheasantSprite(kind: PheasantKind): Sprite =
         commonPheasantImageId = id
       imageId = commonPheasantImageId
 
-    of GRAY_PEACOCK:
-      if grayPheasantImageId == -1:
-        let (id, _) = Images.loadImage("./assets/grey_peacock_pheasant.png", FILTER_NEAREST)
-        grayPheasantImageId = id
-      imageId = grayPheasantImageId
+    of PURPLE_PEACOCK:
+      if purplePheasantImageId == -1:
+        let (id, _) = Images.loadImage("./assets/purple_peacock_pheasant.png", FILTER_NEAREST)
+        purplePheasantImageId = id
+      imageId = purplePheasantImageId
 
     of BLUE_EARED:
       if bluePheasantImageId == -1:

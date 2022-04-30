@@ -261,7 +261,7 @@ proc newGameLayer*(grid: Grid): GameLayer =
 
   for i in 1..<numStartingPheasants:
     this.spawnPhesant(PheasantKind.COMMON)
-  this.spawnPhesant(PheasantKind.GRAY_PEACOCK)
+  this.spawnPhesant(PheasantKind.PURPLE_PEACOCK)
 
   # Nest controls
   Input.addKeyEventListener(
@@ -322,8 +322,8 @@ proc getEggKind*(kind: PheasantKind): EggKind =
   case kind:
     of PheasantKind.COMMON:
       return EggKind.WHITE
-    of PheasantKind.GRAY_PEACOCK:
-      return EggKind.GRAY
+    of PheasantKind.PURPLE_PEACOCK:
+      return EggKind.PURPLE
     of PheasantKind.BLUE_EARED:
       return EggKind.BLUE
     of PheasantKind.GOLDEN:
@@ -437,7 +437,7 @@ proc openShop(this: GameLayer) =
         of 891..980:
           PheasantKind.BLUE_EARED
         of 741..890:
-          PheasantKind.GRAY_PEACOCK
+          PheasantKind.PURPLE_PEACOCK
         else:
           PheasantKind.COMMON
 
