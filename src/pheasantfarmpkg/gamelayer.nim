@@ -16,7 +16,7 @@ import ui/itempanel as itempanelModule
 import ui/gameover as gameoverModule
 
 const
-  numStartingPheasants = 2000 # 10
+  numStartingPheasants = 10
   dayLengthInSeconds = 30
   fadeInDuration = 1.0
   startingMoney = 50
