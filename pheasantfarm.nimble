@@ -18,6 +18,9 @@ task runr, "Runs the game":
 task rund, "Runs the game in debug mode":
   exec "nim r -d:debug -d:collisionoutlines src/pheasantfarm.nim"
 
+task runprof, "Runs the game with profiling":
+  exec "nim r -d:release --profiler:on --stacktrace:on src/pheasantfarm.nim"
+
 task deploy, "Deploys a production release of the game":
   exec "nim c --app:gui -d:release --outdir:dist/pheasantfarm src/pheasantfarm.nim"
   cpDir("assets", "dist/pheasantfarm/assets")
