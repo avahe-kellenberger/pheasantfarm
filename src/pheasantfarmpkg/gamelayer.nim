@@ -16,7 +16,7 @@ import ui/itempanel as itempanelModule
 import ui/gameover as gameoverModule
 
 const
-  numStartingPheasants = 10
+  numStartingPheasants = 2000 # 10
   dayLengthInSeconds = 30
   fadeInDuration = 1.0
   startingMoney = 50
@@ -492,23 +492,32 @@ proc resolveCollision(this: GameLayer, bodyA, bodyB: PhysicsBody) =
     bodyA.notifyCollisionListeners(bodyB, collisionResult, VECTOR_ZERO)
     bodyB.notifyCollisionListeners(bodyA, collisionResult.invert(), VECTOR_ZERO)
 
+proc shouldCheckBodies(body, bodyInGrid: PhysicsBody): bool =
+  if body == bodyInGrid:
+    return false
+  if body of Pheasant and bodyInGrid of Egg:
+    return false
+  return true
+
 proc checkCollisions(this: GameLayer) =
   for child in this.childIterator:
     if child of PhysicsBody:
-      let
-        body = PhysicsBody(child)
-        bounds = body.getBounds()
+      let body = PhysicsBody(child)
+      if body.kind == PhysicsBodyKind.STATIC:
+        continue
+      let bounds = body.getBounds()
+      if bounds == nil:
+        continue
 
-      if bounds != nil and body.kind != PhysicsBodyKind.STATIC:
-        for (x, y) in this.grid.findOverlappingTiles(bounds):
-          for bodyInGrid in this.grid[x, y]:
-            if body != bodyInGrid:
-              this.colliders.incl(bodyInGrid)
+      for (x, y) in this.grid.findOverlappingTiles(bounds):
+        for bodyInGrid in this.grid[x, y]:
+          if shouldCheckBodies(body, bodyInGrid):
+            this.colliders.incl(bodyInGrid)
 
-        for collider in this.colliders:
-          this.resolveCollision(body, collider)
+      for collider in this.colliders:
+        this.resolveCollision(body, collider)
 
-        this.colliders.clear()
+      this.colliders.clear()
 
 proc onTimerEnd(this: GameLayer) =
   timeUpSound.play(0.4)
