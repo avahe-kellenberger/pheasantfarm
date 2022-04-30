@@ -55,17 +55,17 @@ proc newItemPanel*(): ItemPanel =
   result.nestCountLabel =
     result.createItem(nestSprite, newPosition(xPosition, 0.6))
 
-  let nestInstructions = newLabel("Press Q to use Nest", WHITE)
+  let nestInstructions = newLabel("SPACE to use Nest", WHITE)
   nestInstructions.font = instructionsFont
   nestInstructions.position.x = result.nestCountLabel.position.x - 0.4
   nestInstructions.position.y = 0.85
   result.add(nestInstructions)
 
-  let nestPlacementInstructions = newLabel("Press E to place", WHITE)
-  nestPlacementInstructions.font = instructionsFont
-  nestPlacementInstructions.position.x = nestInstructions.position.x
-  nestPlacementInstructions.position.y = 0.95
-  result.add(nestPlacementInstructions)
+  let nestRequirementLabel = newLabel("Requires white egg", WHITE)
+  nestRequirementLabel.font = instructionsFont
+  nestRequirementLabel.position.x = nestInstructions.position.x
+  nestRequirementLabel.position.y = 0.95
+  result.add(nestRequirementLabel)
 
 proc createItem(this: ItemPanel, sprite: Sprite, position: Position, scale: Vector = vector(3, 3)): Label =
   let boardImage = newButton(itemBoardSprite)

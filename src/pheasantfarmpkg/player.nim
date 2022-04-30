@@ -24,7 +24,6 @@ type
     animationPlayer*: AnimationPlayer
     sprite*: Sprite
     direction*: IVector
-    isHoldingNest*: bool
 
 const
     INPUT_MAP = {
@@ -65,20 +64,6 @@ template createIdleLeftAnimation(this: Player): Animation =
 template createIdleRightAnimation(this: Player): Animation =
   this.createSingleFrameAnimation(ivector(0, 2))
 
-# Idle holding animations
-
-template createIdleHoldingDownAnimation(this: Player): Animation =
-  this.createSingleFrameAnimation(ivector(3, 0))
-
-template createIdleHoldingUpAnimation(this: Player): Animation =
-  this.createSingleFrameAnimation(ivector(3, 1))
-
-template createIdleHoldingLeftAnimation(this: Player): Animation =
-  this.createSingleFrameAnimation(ivector(3, 2), true)
-
-template createIdleHoldingRightAnimation(this: Player): Animation =
-  this.createSingleFrameAnimation(ivector(3, 2))
-
 # Walking animations
 
 template createWalkDownAnimation(this: Player): Animation =
@@ -92,20 +77,6 @@ template createWalkLeftAnimation(this: Player): Animation =
 
 template createWalkRightAnimation(this: Player): Animation =
   this.createPlayerAnimation(0.2, true, false, ivector(1, 2), ivector(2, 2))
-
-# Walking while holding animations
-
-template createWalkDownHoldingAnimation(this: Player): Animation =
-  this.createPlayerAnimation(0.2, true, false, ivector(4, 0), ivector(5, 0))
-
-template createWalkUpHoldingAnimation(this: Player): Animation =
-  this.createPlayerAnimation(0.2, true, false, ivector(4, 1), ivector(5, 1))
-
-template createWalkLeftHoldingAnimation(this: Player): Animation =
-  this.createPlayerAnimation(0.2, true, true, ivector(4, 2), ivector(5, 2))
-
-template createWalkRightHoldingAnimation(this: Player): Animation =
-  this.createPlayerAnimation(0.2, true, false, ivector(4, 2), ivector(5, 2))
 
 proc createPlayerAnimation(
   this: Player,
@@ -143,11 +114,6 @@ proc createAnimPlayer(this: Player): AnimationPlayer =
   result.addAnimation("idleRight", this.createIdleRightAnimation())
   result.addAnimation("idleUp", this.createIdleUpAnimation())
 
-  result.addAnimation("idleDownHolding", this.createIdleHoldingDownAnimation())
-  result.addAnimation("idleLeftHolding", this.createIdleHoldingLeftAnimation())
-  result.addAnimation("idleRightHolding", this.createIdleHoldingRightAnimation())
-  result.addAnimation("idleUpHolding", this.createIdleHoldingUpAnimation())
-
   let walkDownAnimation = this.createWalkDownAnimation()
   walkDownAnimation.onFinished:
     this.animationPlayer.playAnimation("idleDown")
@@ -161,11 +127,6 @@ proc createAnimPlayer(this: Player): AnimationPlayer =
   result.addAnimation("walkRight", this.createWalkRightAnimation())
   result.addAnimation("walkUp", this.createWalkUpAnimation())
 
-  result.addAnimation("walkDownHolding", this.createWalkDownHoldingAnimation())
-  result.addAnimation("walkLeftHolding", this.createWalkLeftHoldingAnimation())
-  result.addAnimation("walkRightHolding", this.createWalkRightHoldingAnimation())
-  result.addAnimation("walkUpHolding", this.createWalkUpHoldingAnimation())
-
 proc isMovementKeyPressed(): bool =
   for key in MOVEMENT_KEYS:
     if Input.isKeyPressed(key):
@@ -178,54 +139,30 @@ proc updateAnimation*(this: Player) =
   # Right
   if this.direction.x == 1:
     if isWalking:
-      if this.isHoldingNest:
-        this.animationPlayer.play("walkRightHolding")
-      else:
-        this.animationPlayer.play("walkRight")
+      this.animationPlayer.play("walkRight")
     else:
-      if this.isHoldingNest:
-        this.animationPlayer.play("idleRightHolding")
-      else:
-        this.animationPlayer.play("idleRight")
+      this.animationPlayer.play("idleRight")
 
   # Left
   if this.direction.x == -1:
     if isWalking:
-      if this.isHoldingNest:
-        this.animationPlayer.play("walkLeftHolding")
-      else:
-        this.animationPlayer.play("walkLeft")
+      this.animationPlayer.play("walkLeft")
     else:
-      if this.isHoldingNest:
-        this.animationPlayer.play("idleLeftHolding")
-      else:
-        this.animationPlayer.play("idleLeft")
+      this.animationPlayer.play("idleLeft")
 
   # Up
   if this.direction.y == -1:
     if isWalking:
-      if this.isHoldingNest:
-        this.animationPlayer.play("walkUpHolding")
-      else:
-        this.animationPlayer.play("walkUp")
+      this.animationPlayer.play("walkUp")
     else:
-      if this.isHoldingNest:
-        this.animationPlayer.play("idleUpHolding")
-      else:
-        this.animationPlayer.play("idleUp")
+      this.animationPlayer.play("idleUp")
 
   # Down
   if this.direction.y == 1:
     if isWalking:
-      if this.isHoldingNest:
-        this.animationPlayer.play("walkDownHolding")
-      else:
-        this.animationPlayer.play("walkDown")
+      this.animationPlayer.play("walkDown")
     else:
-      if this.isHoldingNest:
-        this.animationPlayer.play("idleDownHolding")
-      else:
-        this.animationPlayer.play("idleDown")
+      this.animationPlayer.play("idleDown")
 
 proc calculateDirection(): IVector =
   if Input.isKeyPressed(K_W) or Input.isKeyPressed(K_UP):
