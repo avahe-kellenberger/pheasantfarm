@@ -18,7 +18,7 @@ type Nest* = ref object of PhysicsBody
 
 proc newNest*(eggKind: EggKind): Nest =
   result = Nest(kind: PhysicsBodyKind.STATIC)
-  initPhysicsBody(PhysicsBody(result))
+  initPhysicsBody(PhysicsBody(result), {LayerObjectFlags.RENDER})
 
   result.sprite = newSprite(getNestImage(), 4, 1)
   result.sprite.frameCoords.x = ord(eggKind)

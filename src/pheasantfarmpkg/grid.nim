@@ -1,3 +1,4 @@
+import std/tables
 import shade, safeset, seq2d
 import random
 import ui/fontloader
@@ -5,7 +6,9 @@ import ui/fontloader
 export safeset
 
 type
-  Tile* = Safeset[PhysicsBody]
+  Tile = ref object
+    taggedBodies: Table[int, Safeset[PhysicsBody]]
+    unknownBodies: Safeset[PhysicsBody]
   TileCoord* = tuple[x: int, y: int]
   Grid* = ref object
     tiles: Seq2D[Tile]
@@ -17,7 +20,13 @@ type
 const NULL_TILE* = (-1, -1)
 
 proc newTile(): Tile =
-  return newSafeset[PhysicsBody]()
+  result = Tile()
+  result.unknownBodies = newSafeset[PhysicsBody]()
+
+proc len(this: Tile): int =
+  for taggedBodySet in this.taggedBodies.values:
+    result += taggedBodySet.len
+  result += this.unknownBodies.len
 
 proc newGrid*(width, height: int, tileSize: float): Grid =
   result = Grid()
@@ -27,14 +36,30 @@ proc newGrid*(width, height: int, tileSize: float): Grid =
   result.height = height
   result.bounds = newAABB(0.0, 0.0, width * tileSize, height * tileSize)
 
-proc `[]`*(this: Grid, x, y: int): Tile =
+proc getSize*(this: Grid): Vector =
+  return this.bounds.getSize()
+
+proc `[]`(this: Grid, x, y: int): Tile =
   result = this.tiles[x, y]
   if result == nil:
     result = newTile()
     this.tiles[x, y] = result
 
-proc getSize*(this: Grid): Vector =
-  return this.bounds.getSize()
+iterator queryAll*(this: Grid, x, y: int): PhysicsBody =
+  let tile = this[x, y]
+  for taggedBodySet in tile.taggedBodies.values:
+    for body in taggedBodySet:
+      yield body
+  for body in tile.unknownBodies:
+    yield body
+
+iterator query*(this: Grid, x, y: int, tags: varargs[int]): PhysicsBody =
+  let tile = this[x, y]
+  for tag in tags:
+    let taggedBodySet = tile.taggedBodies.getOrDefault(tag, nil)
+    if taggedBodySet != nil:
+      for body in taggedBodySet:
+        yield body
 
 iterator findOverlappingTiles*(this: Grid, bounds: AABB): TileCoord =
   let
@@ -60,13 +85,27 @@ proc addPhysicsBodies*(this: Grid, bodies: varargs[PhysicsBody]) =
   for body in bodies:
     let bounds = body.getBounds()
     for (x, y) in this.findOverlappingTiles(bounds):
-      this[x, y].add(body)
+      this[x, y].unknownBodies.add(body)
+
+proc addPhysicsBodies*(this: Grid, tag: int, bodies: varargs[PhysicsBody]) =
+  for body in bodies:
+    let bounds = body.getBounds()
+    for (x, y) in this.findOverlappingTiles(bounds):
+      let tile = this[x, y]
+      var taggedBodySet = tile.taggedBodies.getOrDefault(tag, nil)
+      if taggedBodySet == nil:
+        taggedBodySet = newSafeSet[PhysicsBody]()
+        tile.taggedBodies[tag] = taggedBodySet
+      taggedBodySet.add(body)
 
 proc removePhysicsBodies*(this: Grid, bodies: varargs[PhysicsBody]) =
   for body in bodies:
     let bounds = body.getBounds()
     for (x, y) in this.findOverlappingTiles(bounds):
-      this[x, y].remove(body)
+      let tile = this[x, y]
+      for taggedBodySet in tile.taggedBodies.values:
+        taggedBodySet.remove(body)
+      tile.unknownBodies.remove(body)
 
 proc tileToWorldCoord*(this: Grid, x, y: int): Vector =
   return vector(
@@ -99,11 +138,9 @@ proc getRandomPointInTile*(this: Grid, tileCoord: TileCoord): Vector =
 proc isTileAvailable*(this: Grid, tile: TileCoord, isBlocking: proc(body: PhysicsBody): bool): bool =
   if tile.x < 0 or tile.x >= this.width:
     return false
-
   if tile.y < 0 or tile.y >= this.height:
     return false
-
-  for body in this[tile.x, tile.y]:
+  for body in this.queryAll(tile.x, tile.y):
     if isBlocking(body):
       return false
   return true
@@ -118,7 +155,7 @@ proc getRandomAvailableTile*(this: Grid, isBlocking: proc(body: PhysicsBody): bo
     for x in 1 .. width:
 
       block bodyCheck:
-        for body in this[x, y]:
+        for body in this.queryAll(x, y):
           if isBlocking(body):
             break bodyCheck
 
@@ -179,7 +216,7 @@ proc render*(this: Grid, ctx: Target, camera: Camera) =
       y * this.tileSize,
       GREEN
     )
-    
+
   for x in 0..this.width:
     ctx.line(
       x * this.tileSize,

@@ -3,6 +3,7 @@ import std/[sequtils, algorithm, sets, random, tables]
 import shade
 
 import egg as eggModule
+import fences as fencesModule
 import nest as nestModule
 import grid as gridModule
 import ui/hud as hudModule
@@ -14,9 +15,10 @@ import ui/overlay as overlayModule
 import ui/summary as summaryModule
 import ui/itempanel as itempanelModule
 import ui/gameover as gameoverModule
+import tags as tagsModule
 
 const
-  numStartingPheasants = 10
+  numStartingPheasants = 10 # 2000
   dayLengthInSeconds = 30
   fadeInDuration = 1.0
   startingMoney = 50
@@ -41,6 +43,9 @@ type
     shop*: Shop
     overlay*: Overlay
     gameOverScreen*: GameOverScreen
+
+    innerFenceArea: AABB
+    innerFenceAreaForPheasants: AABB
 
     # Only dynamic physics bodies that require collision checks
     bodies: SafeSet[PhysicsBody]
@@ -81,6 +86,17 @@ proc isBlocking(body: PhysicsBody): bool
 
 template loseCondition(this: GameLayer): bool =
   this.money < 0
+
+template `innerFenceArea=`*(this: GameLayer, aabb: AABB) =
+  this.innerFenceArea = aabb
+
+  let halfWidth = pheasantAABB.width * 0.5
+  this.innerFenceAreaForPheasants = newAABB(
+    this.innerFenceArea.left + halfWidth,
+    this.innerFenceArea.top + pheasantAABB.height,
+    this.innerFenceArea.right - halfWidth,
+    this.innerFenceArea.bottom
+  )
 
 proc playMusic(fadeInTime: float = 0.0) =
   fadeInMusic(song, fadeInTime, 0.25)
@@ -306,14 +322,8 @@ proc spawnEgg(this: GameLayer, kind: EggKind) =
   if tile != NULL_TILE:
     egg.setLocation(this.grid.getRandomPointInTile(tile))
 
-  egg.addCollisionListener(
-    proc(bodyA, bodyB: PhysicsBody, r: CollisionResult, gravityNormal: Vector): bool =
-      if bodyA of Egg and bodyB of Player:
-        this.collectEgg(Egg(bodyA))
-  )
-
   this.addChild(egg)
-  this.grid.addPhysicsBodies(egg)
+  this.grid.addPhysicsBodies(tagEgg, egg)
 
 proc collectEgg(this: GameLayer, egg: Egg) =
   pickupSound.play()
@@ -482,7 +492,13 @@ method visitChildren*(this: GameLayer, handler: proc(child: Node)) =
   for child in childrenSeq:
     handler(child)
 
-proc resolveCollision(this: GameLayer, bodyA, bodyB: PhysicsBody) =
+proc resolveCollision(this: GameLayer, bodyA, bodyB: PhysicsBody, collisionResult: CollisionResult) =
+  if bodyA of Player and bodyB of Egg:
+    this.collectEgg(Egg(bodyB))
+    return
+  bodyA.move(collisionResult.getMinimumTranslationVector())
+
+proc detectCollision(this: GameLayer, bodyA, bodyB: PhysicsBody) =
   let
     collisionResult = collides(
       bodyA.getLocation(),
@@ -492,17 +508,19 @@ proc resolveCollision(this: GameLayer, bodyA, bodyB: PhysicsBody) =
     )
 
   if collisionResult != nil:
-    bodyA.move(collisionResult.getMinimumTranslationVector())
+    this.resolveCollision(bodyA, bodyB, collisionResult)
 
-    bodyA.notifyCollisionListeners(bodyB, collisionResult, VECTOR_ZERO)
-    bodyB.notifyCollisionListeners(bodyA, collisionResult.invert(), VECTOR_ZERO)
+proc isPheasantCollidableWithFences(this: GameLayer, body: PhysicsBody, bounds: AABB): bool =
+  return not this.innerFenceAreaForPheasants.contains(body.getLocation())
 
-proc shouldCheckBodies(body, bodyInGrid: PhysicsBody): bool =
-  if body == bodyInGrid:
-    return false
-  if body of Pheasant and bodyInGrid of Egg:
-    return false
-  return true
+proc getCollidableTags(this: GameLayer, body: PhysicsBody, bounds: AABB): seq[int] =
+  if body of Pheasant:
+    # Perform special bounds check for pheasants
+    if this.isPheasantCollidableWithFences(body, bounds):
+      return @[tagFence]
+  elif body of Player:
+    return @[tagFence, tagEgg]
+  return @[]
 
 proc checkCollisions(this: GameLayer) =
   for body in this.bodies:
@@ -510,15 +528,16 @@ proc checkCollisions(this: GameLayer) =
     if bounds == nil:
       continue
 
+    let collidableTags = this.getCollidableTags(body, bounds)
+    if len(collidableTags) == 0:
+      continue
+
     for (x, y) in this.grid.findOverlappingTiles(bounds):
-      # TODO implement feature to query the grid by type of object
-      # TODO (using a mask where each bit in the mask maps to a list of a specific type of object)
-      for bodyInGrid in this.grid[x, y]:
-        if shouldCheckBodies(body, bodyInGrid):
-          this.colliders.incl(bodyInGrid)
+      for bodyInGrid in this.grid.query(x, y, collidableTags):
+        this.colliders.incl(bodyInGrid)
 
     for collider in this.colliders:
-      this.resolveCollision(body, collider)
+      this.detectCollision(body, collider)
 
     this.colliders.clear()
 
@@ -562,11 +581,7 @@ proc isTileInPlayArea(this: GameLayer, tile: TileCoord): bool =
     tile.y >= 1 and tile.y <= this.grid.height - 3
 
 proc checkNestAndEggCollisions(this: GameLayer, nest: Nest, tile: TileCoord) =
-  let bodiesInTile = this.grid[tile.x, tile.y]
-  for body in bodiesInTile:
-    if not (body of Egg):
-      continue
-
+  for body in this.grid.query(tile.x, tile.y, tagEgg):
     let
       collisionResult = collides(
         nest.getLocation(),
@@ -589,7 +604,7 @@ proc placeNest(this: GameLayer, tile: TileCoord) =
     let nest = newNest(bestEggKind)
     nest.setLocation(this.grid.tileToWorldCoord(tile) + vector(0, nest.sprite.size.y * 0.5))
     this.addChild(nest)
-    this.grid.addPhysicsBodies(nest)
+    this.grid.addPhysicsBodies(tagNest, nest)
     dec this.nestCount
     this.nestsOnGround.add(nest)
     this.eggCount.inc(bestEggKind, -1)
@@ -618,4 +633,3 @@ method render*(this: GameLayer, ctx: Target, callback: proc() = nil) =
     this.grid.highlightTile(ctx, this.invalidTile, RED, forceColor = true)
 
   procCall Layer(this).render(ctx, callback)
-

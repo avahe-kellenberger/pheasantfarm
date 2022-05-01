@@ -3,6 +3,7 @@ import shade
 import std/random
 
 const speed = 16.0
+let pheasantAABB* = newAABB(-4, -2, 4, 0)
 
 var
   commonPheasantImageId = -1
@@ -177,7 +178,7 @@ proc createAnimPlayer(this: Pheasant): AnimationPlayer =
     onEatingFinished(this)
 
 proc createCollisionShape(): CollisionShape =
-  result = newCollisionShape(newAABB(-4, -2, 4, 0))
+  result = newCollisionShape(pheasantAABB)
 
 proc createNewPheasant*(kind: PheasantKind): Pheasant =
   result = Pheasant(pheasantKind: kind)

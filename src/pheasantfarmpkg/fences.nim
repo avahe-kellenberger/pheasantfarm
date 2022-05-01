@@ -1,5 +1,6 @@
 import shade
 import grid
+import tags
 
 var fenceImageId: int = -1
 
@@ -16,7 +17,7 @@ type
 
 proc newFence(alignment: FenceAlignment, lengthInTiles: int): Fence =
   result = Fence(kind: PhysicsBodyKind.STATIC)
-  initPhysicsBody(PhysicsBody(result))
+  initPhysicsBody(PhysicsBody(result), {LayerObjectFlags.RENDER})
 
   result.alignment = alignment
   result.lengthInTiles = lengthInTiles
@@ -47,7 +48,7 @@ proc newFence(alignment: FenceAlignment, lengthInTiles: int): Fence =
         newAABB(-halfSpriteSize.x, -halfSpriteSize.y, size.x - halfSpriteSize.x, size.y - halfSpriteSize.y)
        )
 
-proc generateAndAddFences*(layer: Layer, grid: Grid) =
+proc generateAndAddFences*(layer: Layer, grid: Grid): AABB =
   # Create top fence
   let topFence = newFence(TOP, grid.width - 2)
   topFence.setLocation(grid.tileToWorldCoord(1, 0))
@@ -68,7 +69,14 @@ proc generateAndAddFences*(layer: Layer, grid: Grid) =
   rightFence.setLocation(grid.tileToWorldCoord(grid.width - 1, 0))
   layer.addChild(rightFence)
 
-  grid.addPhysicsBodies(topFence, bottomFence, leftFence, rightFence)
+  grid.addPhysicsBodies(tagFence, topFence, bottomFence, leftFence, rightFence)
+
+  return newAABB(
+    leftFence.getBounds().right,
+    topFence.getBounds().bottom,
+    rightFence.getBounds().left,
+    bottomFence.getBounds().top
+  )
 
 template renderHorizontal(this: Fence, ctx: Target) =
   for x in 0..<this.lengthInTiles:

@@ -24,7 +24,7 @@ when isMainModule:
   let layer = newGameLayer(grid)
   Game.scene.addLayer(layer)
 
-  generateAndAddFences(layer, grid)
+  layer.innerFenceArea = generateAndAddFences(layer, grid)
 
   layer.loadNewDay()
 

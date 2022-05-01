@@ -29,7 +29,7 @@ const EGG_PRICES* = {
 
 proc newEgg*(eggKind: EggKind = EggKind.WHITE): Egg =
   result = Egg(kind: PhysicsBodyKind.STATIC)
-  initPhysicsBody(PhysicsBody(result))
+  initPhysicsBody(PhysicsBody(result), {LayerObjectFlags.RENDER})
   result.eggKind = eggKind
 
   result.sprite = newSprite(getEggImage(), 4, 1)
