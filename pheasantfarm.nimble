@@ -9,8 +9,8 @@ srcDir = "src"
 bin = @["pheasantfarm"]
 
 # Dependencies
-requires "nim >= 1.6.4"
-requires "https://github.com/avahe-kellenberger/shade"
+requires "nim >= 1.6.6"
+requires "https://github.com/einheit-tech/shade#24427e822241ecc15280a9ae9b3d20f4a45b4751"
 
 task runr, "Runs the game":
   exec "nim r -d:release src/pheasantfarm.nim"
