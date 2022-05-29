@@ -195,12 +195,12 @@ proc handleMovementKeyReleased(this: Player, keycode: KeyCode, repeat: bool) =
     this.updateDirection()
 
 proc setupInputListeners(this: Player) =
-  Input.addEventListener(KEYUP, proc(e: Event): bool =
+  Input.addListener(KEYUP, proc(e: Event): bool =
     if this.isControllable:
       this.handleMovementKeyReleased(e.key.keysym.sym, e.key.repeat != 0)
   )
   
-  Input.addEventListener(KEYDOWN, proc(e: Event): bool =
+  Input.addListener(KEYDOWN, proc(e: Event): bool =
     if this.isControllable:
       this.handleMovementKeyPressed(e.key.keysym.sym, e.key.repeat != 0)
   )

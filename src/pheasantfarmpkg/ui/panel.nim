@@ -20,15 +20,17 @@ proc initPanel*(panel: Panel) =
   initNode(Node(panel), {LayerObjectFlags.RENDER})
   panel.visible = true
 
-  Input.addMousePressedEventListener(
+  Input.addMousePressedListener(
     proc(button: int, state: ButtonState, x, y, clickCount: int) =
       if not panel.visible:
         return
 
       let clickedCoord = vector(x, y) - panel.getLocation()
       for element in panel.elements:
-        if element.visible and element.onClickHandler != nil and panel.elementContainsPoint(element, clickedCoord):
-          element.onClickHandler()
+        if element.visible and
+           element.onClickHandler != nil and
+           panel.elementContainsPoint(element, clickedCoord):
+            element.onClickHandler()
   )
 
 proc newPanel*(): Panel =

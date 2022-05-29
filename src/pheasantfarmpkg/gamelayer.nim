@@ -251,7 +251,7 @@ proc newGameLayer*(grid: Grid): GameLayer =
   Game.scene.camera = camera
 
   when defined(debug):
-    Input.addEventListener(
+    Input.addListener(
       MOUSEWHEEL,
       proc(e: Event): bool =
         camera.z += float(e.wheel.y) * 0.03
@@ -284,7 +284,7 @@ proc newGameLayer*(grid: Grid): GameLayer =
   this.spawnPhesant(PheasantKind.PURPLE_PEACOCK)
 
   # Nest controls
-  Input.addKeyEventListener(
+  Input.addKeyPressedListener(
     K_SPACE,
     proc(key: Keycode, state: KeyState) =
       if state.justPressed and

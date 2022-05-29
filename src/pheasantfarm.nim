@@ -59,7 +59,7 @@ when isMainModule:
   startMenu.quitButton.onClick:
     Game.stop()
 
-  Input.addKeyEventListener(
+  Input.addKeyPressedListener(
     K_ESCAPE,
     proc(key: Keycode, state: KeyState) =
       Game.stop()
