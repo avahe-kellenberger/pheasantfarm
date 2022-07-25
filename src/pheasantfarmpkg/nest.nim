@@ -18,14 +18,13 @@ type Nest* = ref object of PhysicsBody
 
 proc newNest*(eggKind: EggKind): Nest =
   result = Nest(kind: PhysicsBodyKind.STATIC)
-  initPhysicsBody(PhysicsBody(result), {LayerObjectFlags.RENDER})
-
+  var shape = newCollisionShape(aabb(-5.5, -5, 5.5, 0))
+  initPhysicsBody(PhysicsBody(result), shape, {LayerObjectFlags.RENDER})
   result.sprite = newSprite(getNestImage(), 4, 1)
   result.sprite.frameCoords.x = ord(eggKind)
   result.sprite.offset.y = -result.sprite.size.y * 0.5
   result.eggKind = eggKind
 
-  result.collisionShape = newCollisionShape(newAABB(-5.5, -5, 5.5, 0))
 
 Nest.renderAsChildOf(PhysicsBody):
   this.sprite.render(ctx)

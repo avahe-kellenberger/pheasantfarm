@@ -3,7 +3,7 @@ import shade
 import std/random
 
 const speed = 16.0
-let pheasantAABB* = newAABB(-4, -2, 4, 0)
+let pheasantAABB* = aabb(-4, -2, 4, 0)
 
 var
   commonPheasantImageId = -1
@@ -182,14 +182,14 @@ proc createCollisionShape(): CollisionShape =
 
 proc createNewPheasant*(kind: PheasantKind): Pheasant =
   result = Pheasant(pheasantKind: kind)
-  initPhysicsBody(PhysicsBody(result))
+  var shape = createCollisionShape()
+  initPhysicsBody(PhysicsBody(result), shape)
   result.scale = vector(0.75, 0.75)
 
   result.sprite = createPheasantSprite(kind)
   result.sprite.offset.y = -result.sprite.size.y * 0.5
 
   result.animationPlayer = createAnimPlayer(result)
-  result.collisionShape = createCollisionShape()
 
   # Starts as idle
   result.setAction(randomAction())

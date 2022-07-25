@@ -29,16 +29,19 @@ const EGG_PRICES* = {
 
 proc newEgg*(eggKind: EggKind = EggKind.WHITE): Egg =
   result = Egg(kind: PhysicsBodyKind.STATIC)
-  initPhysicsBody(PhysicsBody(result), {LayerObjectFlags.RENDER})
-  result.eggKind = eggKind
 
-  result.sprite = newSprite(getEggImage(), 4, 1)
+  let sprite = newSprite(getEggImage(), 4, 1)
+  var shape = newCollisionShape(
+    aabb(-5, -6, 5, 6).getScaledInstance(sprite.scale)
+  )
+
+  initPhysicsBody(PhysicsBody(result), shape, {LayerObjectFlags.RENDER})
+
+  result.eggKind = eggKind
+  result.sprite = sprite
   result.sprite.frameCoords.x = ord(eggKind)
   result.sprite.scale = vector(0.75, 0.75)
 
-  result.collisionShape = newCollisionShape(
-    newAABB(-5, -6, 5, 6).getScaledInstance(result.sprite.scale)
-  )
 
 proc calcTotal*(eggCount: CountTable[EggKind]): int =
   for kind, count in eggCount.pairs():

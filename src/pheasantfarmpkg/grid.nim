@@ -34,7 +34,7 @@ proc newGrid*(width, height: int, tileSize: float): Grid =
   result.tileSize = tileSize
   result.width = width
   result.height = height
-  result.bounds = newAABB(0.0, 0.0, width * tileSize, height * tileSize)
+  result.bounds = aabb(0.0, 0.0, width * tileSize, height * tileSize)
 
 proc getSize*(this: Grid): Vector =
   return this.bounds.getSize()

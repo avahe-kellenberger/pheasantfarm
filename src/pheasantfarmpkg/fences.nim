@@ -17,36 +17,41 @@ type
 
 proc newFence(alignment: FenceAlignment, lengthInTiles: int): Fence =
   result = Fence(kind: PhysicsBodyKind.STATIC)
-  initPhysicsBody(PhysicsBody(result), {LayerObjectFlags.RENDER})
 
-  result.alignment = alignment
-  result.lengthInTiles = lengthInTiles
   if fenceImageId == -1:
     let (id, _) = Images.loadImage("./assets/phence.png", FILTER_NEAREST)
     fenceImageId = id
 
-  result.sprite = newSprite(Images[fenceImageId], 7, 1)
-  if alignment == BOTTOM:
-    result.sprite.offset = vector(0, -result.sprite.size.y)
+  let sprite = newSprite(Images[fenceImageId], 7, 1)
 
   # Create collision shape based on orientation.
-  case result.alignment:
-    of TOP, BOTTOM:
-      let
-        size = vector(result.sprite.size.x * lengthInTiles, result.sprite.size.y)
-        halfSpriteSize = result.sprite.size * 0.5
+  var shape =
+    case alignment:
+      of TOP, BOTTOM:
+        let
+          size = vector(sprite.size.x * lengthInTiles, sprite.size.y)
+          halfSpriteSize = sprite.size * 0.5
 
-      result.collisionShape = newCollisionShape(
-        newAABB(-halfSpriteSize.x, -halfSpriteSize.y, size.x - halfSpriteSize.x, size.y - halfSpriteSize.y)
-      )
+        newCollisionShape(
+          aabb(-halfSpriteSize.x, -halfSpriteSize.y, size.x - halfSpriteSize.x, size.y - halfSpriteSize.y)
+        )
 
-    of LEFT, RIGHT:
-      let
-        size = vector(result.sprite.size.x, result.sprite.size.y * lengthInTiles)
-        halfSpriteSize = result.sprite.size * 0.5
-      result.collisionShape = newCollisionShape(
-        newAABB(-halfSpriteSize.x, -halfSpriteSize.y, size.x - halfSpriteSize.x, size.y - halfSpriteSize.y)
-       )
+      of LEFT, RIGHT:
+        let
+          size = vector(sprite.size.x, sprite.size.y * lengthInTiles)
+          halfSpriteSize = sprite.size * 0.5
+
+        newCollisionShape(
+          aabb(-halfSpriteSize.x, -halfSpriteSize.y, size.x - halfSpriteSize.x, size.y - halfSpriteSize.y)
+         )
+
+  initPhysicsBody(PhysicsBody(result), shape, {LayerObjectFlags.RENDER})
+  result.sprite = sprite
+  result.alignment = alignment
+  result.lengthInTiles = lengthInTiles
+
+  if alignment == BOTTOM:
+    result.sprite.offset = vector(0, -result.sprite.size.y)
 
 proc generateAndAddFences*(layer: Layer, grid: Grid): AABB =
   # Create top fence
@@ -71,7 +76,7 @@ proc generateAndAddFences*(layer: Layer, grid: Grid): AABB =
 
   grid.addPhysicsBodies(tagFence, topFence, bottomFence, leftFence, rightFence)
 
-  return newAABB(
+  result = aabb(
     leftFence.getBounds().right,
     topFence.getBounds().bottom,
     rightFence.getBounds().left,
@@ -121,6 +126,5 @@ Fence.renderAsChildOf(PhysicsBody):
       this.renderRight(ctx)
 
   when defined(debug):
-    if this.collisionShape != nil:
-      this.collisionShape.render(ctx)
+    this.collisionShape.render(ctx)
 

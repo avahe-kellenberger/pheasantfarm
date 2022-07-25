@@ -87,11 +87,11 @@ proc isBlocking(body: PhysicsBody): bool
 template loseCondition(this: GameLayer): bool =
   this.money < 0
 
-template `innerFenceArea=`*(this: GameLayer, aabb: AABB) =
+proc `innerFenceArea=`*(this: GameLayer, aabb: AABB) =
   this.innerFenceArea = aabb
 
   let halfWidth = pheasantAABB.width * 0.5
-  this.innerFenceAreaForPheasants = newAABB(
+  this.innerFenceAreaForPheasants = aabb(
     this.innerFenceArea.left + halfWidth,
     this.innerFenceArea.top + pheasantAABB.height,
     this.innerFenceArea.right - halfWidth,
@@ -525,7 +525,7 @@ proc getCollidableTags(this: GameLayer, body: PhysicsBody, bounds: AABB): seq[in
 proc checkCollisions(this: GameLayer) =
   for body in this.bodies:
     let bounds = body.getBounds()
-    if bounds == nil:
+    if bounds == AABB_ZERO:
       continue
 
     let collidableTags = this.getCollidableTags(body, bounds)

@@ -104,7 +104,7 @@ proc createPlayerSprite(this: Player): Sprite =
   result = newSprite(image, 6, 3)
 
 proc createCollisionShape(scale: Vector): CollisionShape =
-  result = newCollisionShape(newAABB(-2, -4, 2, 0).getScaledInstance(scale))
+  result = newCollisionShape(aabb(-2, -4, 2, 0).getScaledInstance(scale))
 
 proc createAnimPlayer(this: Player): AnimationPlayer =
   result = newAnimationPlayer()
@@ -207,16 +207,19 @@ proc setupInputListeners(this: Player) =
 
 proc newPlayer*(): Player =
   result = Player()
-  initPhysicsBody(PhysicsBody(result))
-  result.scale = vector(1.5, 1.5)
 
+  let scale = vector(1.5, 1.5)
+  var shape = createCollisionShape(scale)
+
+  initPhysicsBody(PhysicsBody(result), shape)
+
+  result.scale = scale
   result.sprite = result.createPlayerSprite()
   # Sprite isn't perfectly centered in frame.
   result.sprite.offset.x = 0.5
   # Move sprite to render his feet at y 0
   result.sprite.offset.y = -result.sprite.size.y * 0.5
 
-  result.collisionShape = createCollisionShape(result.scale)
   result.animationPlayer = createAnimPlayer(result)
   result.animationPlayer.playAnimation("idleDown")
   result.setupInputListeners()
