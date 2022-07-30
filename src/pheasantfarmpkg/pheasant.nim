@@ -39,9 +39,9 @@ proc pickRandomDirection(this: Pheasant) =
 
   # Flip sprite to face proper direction
   if this.direction.x > 0:
-    this.scale.x = abs(this.scale.x)
+    this.sprite.scale.x = abs(this.sprite.scale.x)
   else:
-    this.scale.x = -abs(this.scale.x)
+    this.sprite.scale.x = -abs(this.sprite.scale.x)
 
 proc createIdleAnimation(this: Pheasant): Animation =
   const frameCount = 1
@@ -184,9 +184,9 @@ proc createNewPheasant*(kind: PheasantKind): Pheasant =
   result = Pheasant(pheasantKind: kind)
   var shape = createCollisionShape()
   initPhysicsBody(PhysicsBody(result), shape)
-  result.scale = vector(0.75, 0.75)
 
   result.sprite = createPheasantSprite(kind)
+  result.sprite.scale = vector(0.75, 0.75)
   result.sprite.offset.y = -result.sprite.size.y * 0.5
 
   result.animationPlayer = createAnimPlayer(result)
@@ -231,5 +231,5 @@ method update*(this: Pheasant, deltaTime: float) =
   this.animationPlayer.update(deltaTime)
 
 Pheasant.renderAsChildOf(PhysicsBody):
-  this.sprite.render(ctx)
+  this.sprite.render(ctx, this.x + offsetX, this.y + offsetY)
 

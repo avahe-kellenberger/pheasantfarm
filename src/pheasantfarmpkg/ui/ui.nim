@@ -23,5 +23,4 @@ template onClick*(this: UIElement, body: untyped) =
   this.onClickHandler = proc() = body
 
 UIElement.renderAsParent:
-  if this.visible and callback != nil:
-    callback()
+  discard

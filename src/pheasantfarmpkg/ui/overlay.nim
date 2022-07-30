@@ -95,7 +95,7 @@ proc setDay*(this: Overlay, day: int) =
 proc update*(this: Overlay, deltaTime: float) =
   this.animationPlayer.update(deltaTime)
 
-method render*(this: Overlay, ctx: Target, callback: proc() = nil) =
+method render*(this: Overlay, ctx: Target, offsetX: float = 0, offsetY: float = 0) =
   if this.visible:
     ctx.rectangleFilled(
       -1,
@@ -105,5 +105,5 @@ method render*(this: Overlay, ctx: Target, callback: proc() = nil) =
       this.currentColor
     )
 
-    procCall Panel(this).render(ctx, callback)
+    procCall Panel(this).render(ctx, offsetX, offsetY)
 

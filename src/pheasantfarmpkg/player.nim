@@ -92,7 +92,7 @@ proc createPlayerAnimation(
   anim.addNewAnimationTrack(this.sprite.frameCoords, animCoordFrames)
 
   let scaleFrame: seq[KeyFrame[Vector]] = @[(
-    vector(if flip: -1.0 else: 1.0, this.sprite.scale.y),
+    vector(if flip: -1.5 else: 1.5, this.sprite.scale.y),
     0.0
   )]
   anim.addNewAnimationTrack(this.sprite.scale, scaleFrame)
@@ -213,8 +213,8 @@ proc newPlayer*(): Player =
 
   initPhysicsBody(PhysicsBody(result), shape)
 
-  result.scale = scale
   result.sprite = result.createPlayerSprite()
+  result.sprite.scale = scale
   # Sprite isn't perfectly centered in frame.
   result.sprite.offset.x = 0.5
   # Move sprite to render his feet at y 0
@@ -229,5 +229,5 @@ method update*(this: Player, deltaTime: float) =
   this.animationPlayer.update(deltaTime)
 
 Player.renderAsChildOf(PhysicsBody):
-  this.sprite.render(ctx)
+  this.sprite.render(ctx, this.x + offsetX, this.y + offsetY)
 

@@ -27,5 +27,5 @@ proc newNest*(eggKind: EggKind): Nest =
 
 
 Nest.renderAsChildOf(PhysicsBody):
-  this.sprite.render(ctx)
+  this.sprite.render(ctx, this.x + offsetX, this.y + offsetY)
 

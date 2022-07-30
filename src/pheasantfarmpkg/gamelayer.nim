@@ -620,9 +620,9 @@ method update*(this: GameLayer, deltaTime: float, onChildUpdate: proc(child: Nod
   this.overlay.update(deltaTime)
   this.animPlayer.update(deltaTime)
 
-method render*(this: GameLayer, ctx: Target, callback: proc() = nil) =
-  let camera = Game.scene.camera
+method render*(this: GameLayer, ctx: Target, offsetX: float = 0, offsetY: float = 0) =
   when defined(debug):
+    let camera = Game.scene.camera
     this.grid.render(ctx, camera)
     let mouseInWorldSpace = camera.screenToWorldCoord(Input.mouseLocation, this.z - camera.z)
     let tile = this.grid.worldCoordToTile(mouseInWorldSpace)
@@ -632,4 +632,4 @@ method render*(this: GameLayer, ctx: Target, callback: proc() = nil) =
   if this.shouldHighlightInvalidTile and this.invalidTile != NULL_TILE:
     this.grid.highlightTile(ctx, this.invalidTile, RED, forceColor = true)
 
-  procCall Layer(this).render(ctx, callback)
+  procCall Layer(this).render(ctx, offsetX, offsetY)

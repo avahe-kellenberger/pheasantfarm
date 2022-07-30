@@ -25,5 +25,5 @@ proc newGrass*(): Grass =
   result.sprite.offset.y = -result.sprite.size.y * 0.5
 
 Grass.renderAsNodeChild:
-  this.sprite.render(ctx)
+  this.sprite.render(ctx, this.x + offsetX, this.y + offsetY)
 

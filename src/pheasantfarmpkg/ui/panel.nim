@@ -52,14 +52,10 @@ proc elementContainsPoint*(this: Panel, element: UIElement, point: Vector): bool
 proc renderElement(this: Panel, element: UIElement, ctx: Target) =
   # Render elements using the panel size * position
   let loc = vector(this.size.x * 0.5 * element.position.x, this.size.y * 0.5 * element.position.y)
-  ctx.translate(round(loc.x), round(loc.y)):
-    element.render(ctx)
+  element.render(ctx, this.x + round(loc.x), this.y + round(loc.y))
 
 Panel.renderAsNodeChild:
   if this.visible:
     for e in this.elements:
       this.renderElement(e, ctx)
-
-    if callback != nil:
-      callback()
 

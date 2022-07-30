@@ -48,5 +48,5 @@ proc calcTotal*(eggCount: CountTable[EggKind]): int =
     result += count * EGG_PRICES[kind]
 
 Egg.renderAsChildOf(PhysicsBody):
-  this.sprite.render(ctx)
+  this.sprite.render(ctx, this.x + offsetX, this.y + offsetY)
 

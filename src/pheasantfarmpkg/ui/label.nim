@@ -54,7 +54,10 @@ proc setRenderFilter*(this: Label, filter: Filter) =
   if this.imageOfText != nil:
     this.imageOfText.setImageFilter(this.filter)
 
-Label.renderAsChildOf(UIElement):
+method render*(this: Label, ctx: Target, offsetX: float = 0, offsetY: float = 0) =
+  if not this.visible:
+    return
+
   if this.imageOfText == nil:
     let font =
       if this.font != nil:
@@ -73,7 +76,7 @@ Label.renderAsChildOf(UIElement):
     this.imageOfText.setImageFilter(this.filter)
     freeSurface(surface)
 
-  blit(this.imageOfText, nil, ctx, 0, 0)
+  blit(this.imageOfText, nil, ctx, offsetX, offsetY)
 
 proc `=destroy`(this: var LabelObj) =
   if this.imageOfText != nil:

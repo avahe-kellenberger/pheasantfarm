@@ -83,48 +83,49 @@ proc generateAndAddFences*(layer: Layer, grid: Grid): AABB =
     bottomFence.getBounds().top
   )
 
-template renderHorizontal(this: Fence, ctx: Target) =
+template renderHorizontal(this: Fence, ctx: Target, offsetX: float = 0, offsetY: float = 0) =
   for x in 0..<this.lengthInTiles:
-    ctx.translate(x * this.sprite.size.x, 0.0):
-      this.sprite.render(ctx)
+    this.sprite.render(
+      ctx,
+      this.x + x * this.sprite.size.x + offsetX,
+      this.y + offsetY
+    )
 
-template renderLeft(this: Fence, ctx: Target) =
+template renderLeft(this: Fence, ctx: Target, offsetX: float = 0, offsetY: float = 0) =
   # Top of fence
   this.sprite.frameCoords = ivector(1, 0)
-  this.sprite.render(ctx)
+  this.sprite.render(ctx, this.x + offsetX, this.y + offsetY)
 
   # Middle of "stacking" fence
   this.sprite.frameCoords = ivector(2, 0)
   for y in 1..<this.lengthInTiles:
-    ctx.translate(0, y * this.sprite.size.y):
-      if y == this.lengthInTiles - 1:
-        # Bottom on fence
-        this.sprite.frameCoords = ivector(3, 0)
-      this.sprite.render(ctx)
+    if y == this.lengthInTiles - 1:
+      # Bottom on fence
+      this.sprite.frameCoords = ivector(3, 0)
+    this.sprite.render(ctx, this.x + offsetX, this.y + y * this.sprite.size.y + offsetY)
 
-template renderRight(this: Fence, ctx: Target) =
+template renderRight(this: Fence, ctx: Target, offsetX: float = 0, offsetY: float = 0) =
   # Top of fence
   this.sprite.frameCoords = ivector(4, 0)
-  this.sprite.render(ctx)
+  this.sprite.render(ctx, this.x + offsetX, this.y + offsetY)
 
   # Middle of "stacking" fence
   this.sprite.frameCoords = ivector(5, 0)
   for y in 1..<this.lengthInTiles:
-    ctx.translate(0, y * this.sprite.size.y):
-      if y == this.lengthInTiles - 1:
-        # Bottom on fence
-        this.sprite.frameCoords = ivector(6, 0)
-      this.sprite.render(ctx)
+    if y == this.lengthInTiles - 1:
+      # Bottom on fence
+      this.sprite.frameCoords = ivector(6, 0)
+    this.sprite.render(ctx, this.x + offsetX, this.y + y * this.sprite.size.y + offsetY)
 
 Fence.renderAsChildOf(PhysicsBody):
   case this.alignment:
     of TOP, BOTTOM:
-      this.renderHorizontal(ctx)
+      this.renderHorizontal(ctx, offsetX, offsetY)
     of LEFT:
-      this.renderLeft(ctx)
+      this.renderLeft(ctx, offsetX, offsetY)
     of RIGHT:
-      this.renderRight(ctx)
+      this.renderRight(ctx, offsetX, offsetY)
 
   when defined(debug):
-    this.collisionShape.render(ctx)
+    this.collisionShape.render(ctx, offsetX, offsetY)
 
