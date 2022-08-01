@@ -3,7 +3,6 @@ import std/[sequtils, algorithm, sets, random, tables]
 import shade
 
 import egg as eggModule
-import fences as fencesModule
 import nest as nestModule
 import grid as gridModule
 import ui/hud as hudModule
@@ -18,9 +17,8 @@ import ui/gameover as gameoverModule
 import tags as tagsModule
 
 const
-  numStartingPheasants = 10 # 2000
+  numStartingPheasants = 10 # 10_000
   dayLengthInSeconds = 30
-  fadeInDuration = 1.0
   startingMoney = 50
   startingPheedCount = 0 # numStartingPheasants * 2
   startingWaterCount = 0 # numStartingPheasants * 2
@@ -28,6 +26,7 @@ const
   taxDayFrequency = 4
 
 var
+  hasGameStarted = false
   song: Music
   menuClickSound: SoundEffect
   tooPoorSound: SoundEffect
@@ -265,7 +264,7 @@ proc newGameLayer*(grid: Grid): GameLayer =
 
   camera.setTrackedNode(result.player)
   camera.setTrackingEasingFunction(easeOutQuadratic)
-  camera.completionRatioPerFrame = 0.05
+  camera.completionRatioPerFrame = 0.03
 
   result.eggCount = initCountTable[EggKind]()
 
@@ -345,6 +344,7 @@ proc getEggKind*(kind: PheasantKind): EggKind =
       return EggKind.GOLDEN
 
 proc startNewDay*(this: GameLayer) =
+  hasGameStarted = true
   this.isTimeCountingDown = true
   this.player.isControllable = true
 
@@ -614,13 +614,22 @@ proc placeNest(this: GameLayer, tile: TileCoord) =
     this.checkNestAndEggCollisions(nest, tile)
 
 method update*(this: GameLayer, deltaTime: float, onChildUpdate: proc(child: Node) = nil) =
-  procCall Layer(this).update(deltaTime, onChildUpdate)
-  this.checkCollisions()
-  this.updateTimer(deltaTime)
+  if this.isTimeCountingDown or not hasGameStarted:
+    # Make the camera snap to pixels to prevent shaking effect).
+    let cameraLoc = Game.scene.camera.getLocation()
+    Game.scene.camera.setLocation(ceil cameraLoc.x, ceil cameraLoc.y)
+
+    procCall Layer(this).update(deltaTime, onChildUpdate)
+    this.checkCollisions()
+    this.updateTimer(deltaTime)
+    this.animPlayer.update(deltaTime)
+
   this.overlay.update(deltaTime)
-  this.animPlayer.update(deltaTime)
 
 method render*(this: GameLayer, ctx: Target, offsetX: float = 0, offsetY: float = 0) =
+  if hasGameStarted and not this.isTimeCountingDown:
+    return
+
   when defined(debug):
     let camera = Game.scene.camera
     this.grid.render(ctx, camera)
