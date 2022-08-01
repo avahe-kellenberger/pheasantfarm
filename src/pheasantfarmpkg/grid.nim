@@ -171,13 +171,15 @@ proc highlightTile*(
   ctx: Target,
   tileX,
   tileY: int,
+  offsetX: float,
+  offsetY: float,
   color: Color = PURPLE,
   renderText: bool = false,
   forceColor: bool = false
 ) =
   let
-    left = tileX * this.tileSize
-    top = tileY * this.tileSize
+    left = tileX * this.tileSize + offsetX
+    top = tileY * this.tileSize + offsetY
     numObjectsOnTile = this[tileX, tileY].len
 
   ctx.rectangleFilled(
@@ -201,28 +203,30 @@ template highlightTile*(
   this: Grid,
   ctx: Target,
   coord: TileCoord,
+  offsetX: float,
+  offsetY: float,
   color: Color = RED,
   renderText: bool = false,
   forceColor: bool = false
 ) =
-  this.highlightTile(ctx, coord.x, coord.y, color, renderText, forceColor)
+  this.highlightTile(ctx, coord.x, coord.y, offsetX, offsetY, color, renderText, forceColor)
 
-proc render*(this: Grid, ctx: Target, camera: Camera) =
+proc render*(this: Grid, ctx: Target, camera: Camera, offsetX, offsetY: float) =
   for y in 0..this.height:
     ctx.line(
-      0.0,
-      y * this.tileSize,
-      this.width * this.tileSize,
-      y * this.tileSize,
+      offsetX,
+      y * this.tileSize + offsetY,
+      this.width * this.tileSize + offsetX,
+      y * this.tileSize + offsetY,
       GREEN
     )
 
   for x in 0..this.width:
     ctx.line(
-      x * this.tileSize,
-      0.0,
-      x * this.tileSize,
-      this.height * this.tileSize,
+      x * this.tileSize + offsetX,
+      offsetY,
+      x * this.tileSize + offsetX,
+      this.height * this.tileSize + offsetY,
       GREEN
     )
 

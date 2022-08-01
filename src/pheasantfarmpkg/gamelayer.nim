@@ -632,13 +632,13 @@ method render*(this: GameLayer, ctx: Target, offsetX: float = 0, offsetY: float 
 
   when defined(debug):
     let camera = Game.scene.camera
-    this.grid.render(ctx, camera)
+    this.grid.render(ctx, camera, offsetX, offsetY)
     let mouseInWorldSpace = camera.screenToWorldCoord(Input.mouseLocation, this.z - camera.z)
     let tile = this.grid.worldCoordToTile(mouseInWorldSpace)
     if tile != NULL_TILE:
-      this.grid.highlightTile(ctx, tile, PURPLE, true)
+      this.grid.highlightTile(ctx, tile, offsetX, offsetY, PURPLE, true)
 
   if this.shouldHighlightInvalidTile and this.invalidTile != NULL_TILE:
-    this.grid.highlightTile(ctx, this.invalidTile, RED, forceColor = true)
+    this.grid.highlightTile(ctx, this.invalidTile, offsetX, offsetY, RED, forceColor = true)
 
   procCall Layer(this).render(ctx, offsetX, offsetY)
