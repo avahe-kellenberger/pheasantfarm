@@ -1,29 +1,25 @@
 import shade
 
-import strformat
+import fontloader
 
-import panel, ui, label, format, button
-export ui
-
-const orangeColor = newColor(179, 89, 0)
-
-type GameOverScreen* = ref object of Panel
+type GameOverScreen* = ref object of UIComponent
 
 proc newGameOverScreen*(): GameOverScreen =
   result = GameOverScreen()
-  initPanel(Panel(result))
+  initUIComponent(UIComponent(result))
 
   let
-    gameOverLabel = newLabel("Game Over", WHITE)
-    brokeLabel = newLabel("You're BROKE!", newColor(160, 20, 20))
-    quitButton = newButton("./assets/quit.png")
+    gameOverLabel = newText(getFont(), "Game Over", WHITE)
+    brokeLabel = newText(getFont(), "You're BROKE!", newColor(160, 20, 20))
+    quitButton = newUIImage("./assets/quit.png")
 
-  result.add(gameOverLabel)
-  result.add(brokeLabel)
-  result.add(quitButton)
+  result.addChild(gameOverLabel)
+  result.addChild(brokeLabel)
+  result.addChild(quitButton)
 
-  gameOverLabel.position.y = -0.5
-  brokeLabel.position.y = -0.4
-  quitButton.onClick:
+  # gameOverLabel.position.y = -0.5
+  # brokeLabel.position.y = -0.4
+
+  quitButton.onPressed:
     Game.stop()
 

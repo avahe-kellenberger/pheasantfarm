@@ -139,50 +139,61 @@ proc newGameLayer*(grid: Grid): GameLayer =
   invalidTileAnimation.addNewAnimationTrack(this.shouldHighlightInvalidTile, animCoordFrames)
   this.animPlayer.addAnimation("invalid-tile", invalidTileAnimation)
 
+  let root = Game.getUIRoot()
+
   result.overlay = newOverlay(
     proc () = this.openSummary,
     proc () = this.startNewDay
   )
-  result.overlay.size = gamestate.resolution
-  result.overlay.visible = false
-  this.overlay.setLocation(
-    getLocationInParent(this.overlay.position, gamestate.resolution) +
-    gamestate.resolution * 0.5
-  )
+  # result.overlay.width = gamestate.resolution.x
+  # result.overlay.height = gamestate.resolution.y
 
-  Game.hud.addChild(result.overlay)
+  result.overlay.visible = false
+  # this.overlay.setLocation(
+  #   getLocationInParent(this.overlay.position, gamestate.resolution) +
+  #   gamestate.resolution * 0.5
+  # )
+
+  # Game.hud.addChild(result.overlay)
+  root.addChild(result.overlay)
+
+  let hudContainer = newUIComponent()
+  hudContainer.alignHorizontal = Alignment.Center
+  hudContainer.processInputEvents = false
 
   result.hud = newHUD()
   result.hud.setTimeRemaining(0)
   result.hud.setMoney(result.money)
   result.hud.visible = false
-  result.hud.setLocation(
-    getLocationInParent(result.hud.position, gamestate.resolution) +
-    vector(gamestate.resolution.x * 0.5, gamestate.resolution.y * 0.05)
-  )
-  Game.hud.addChild(result.hud)
+
+  hudContainer.addChild(result.hud)
+  root.addChild(hudContainer)
+
+  let itemPanelContainer = newUIComponent()
+  itemPanelContainer.alignVertical = Alignment.Center
+  itemPanelContainer.processInputEvents = false
 
   result.itemPanel = newItemPanel()
   result.itemPanel.setPheedCount(result.pheedCount)
   result.itemPanel.setWaterCount(result.waterCount)
   result.itemPanel.setNestCount(result.nestCount)
   result.itemPanel.visible = false
-  result.itemPanel.setLocation(
-    getLocationInParent(result.itemPanel.position, gamestate.resolution) +
-    vector(result.itemPanel.size.x * 0.5, gamestate.resolution.y * 0.5)
-  )
-  Game.hud.addChild(result.itemPanel)
+  result.itemPanel.borderWidth = 2.0
+
+  itemPanelContainer.addChild(result.itemPanel)
+  root.addChild(itemPanelContainer)
 
   result.shop = newShop(
     (proc(item: Item, qty: int) = this.tryPurchase(item, qty)),
     (proc() = this.loadNewDay())
   )
   result.shop.visible = false
-  result.shop.setLocation(
-    getLocationInParent(this.shop.position, gamestate.resolution) +
-    vector(gamestate.resolution.x * 0.5, gamestate.resolution.y * 0.35)
-  )
-  Game.hud.addChild(result.shop)
+  # result.shop.setLocation(
+  #   getLocationInParent(this.shop.position, gamestate.resolution) +
+  #   vector(gamestate.resolution.x * 0.5, gamestate.resolution.y * 0.35)
+  # )
+  # Game.hud.addChild(result.shop)
+  root.addChild(result.shop)
 
   result.summary = newSummary(
     proc() =
@@ -192,53 +203,57 @@ proc newGameLayer*(grid: Grid): GameLayer =
         this.openShop()
   )
   result.summary.visible = false
-  result.summary.setLocation(
-    getLocationInParent(this.summary.position, gamestate.resolution) +
-    vector(gamestate.resolution.x * 0.5, gamestate.resolution.y * 0.45)
-  )
-  Game.hud.addChild(result.summary)
+  # result.summary.setLocation(
+  #   getLocationInParent(this.summary.position, gamestate.resolution) +
+  #   vector(gamestate.resolution.x * 0.5, gamestate.resolution.y * 0.45)
+  # )
+  # Game.hud.addChild(result.summary)
+
+  root.addChild(result.summary)
 
   result.gameOverScreen = newGameOverScreen()
   result.gameOverScreen.visible = false
-  result.gameOverScreen.setLocation(
-    getLocationInParent(result.gameOverScreen.position, gamestate.resolution) +
-    vector(gamestate.resolution.x * 0.5, gamestate.resolution.y * 0.45)
-  )
-  result.gameOverScreen.size = gamestate.resolution
-  Game.hud.addChild(result.gameOverScreen)
+  # result.gameOverScreen.setLocation(
+  #   getLocationInParent(result.gameOverScreen.position, gamestate.resolution) +
+  #   vector(gamestate.resolution.x * 0.5, gamestate.resolution.y * 0.45)
+  # )
+  # result.gameOverScreen.size = gamestate.resolution
+  # Game.hud.addChild(result.gameOverScreen)
+  
+  root.addChild(result.gameOverScreen)
 
-  gamestate.onResolutionChanged:
-    this.hud.setLocation(
-      getLocationInParent(this.hud.position, gamestate.resolution) +
-      vector(gamestate.resolution.x * 0.5, gamestate.resolution.y * 0.05)
-    )
+  # gamestate.onResolutionChanged:
+  #   this.hud.setLocation(
+  #     getLocationInParent(this.hud.position, gamestate.resolution) +
+  #     vector(gamestate.resolution.x * 0.5, gamestate.resolution.y * 0.05)
+  #   )
 
-    this.itemPanel.setLocation(
-      getLocationInParent(this.itemPanel.position, gamestate.resolution) +
-      vector(this.itemPanel.size.x * 0.5, gamestate.resolution.y * 0.5)
-    )
+  #   this.itemPanel.setLocation(
+  #     getLocationInParent(this.itemPanel.position, gamestate.resolution) +
+  #     vector(this.itemPanel.size.x * 0.5, gamestate.resolution.y * 0.5)
+  #   )
 
-    this.overlay.setLocation(
-      getLocationInParent(this.overlay.position, gamestate.resolution) +
-      gamestate.resolution * 0.5
-    )
-    this.overlay.size = gamestate.resolution
+  #   this.overlay.setLocation(
+  #     getLocationInParent(this.overlay.position, gamestate.resolution) +
+  #     gamestate.resolution * 0.5
+  #   )
+  #   this.overlay.size = gamestate.resolution
 
-    this.shop.setLocation(
-      getLocationInParent(this.shop.position, gamestate.resolution) +
-      vector(gamestate.resolution.x * 0.5, gamestate.resolution.y * 0.35)
-    )
+  #   this.shop.setLocation(
+  #     getLocationInParent(this.shop.position, gamestate.resolution) +
+  #     vector(gamestate.resolution.x * 0.5, gamestate.resolution.y * 0.35)
+  #   )
 
-    this.summary.setLocation(
-      getLocationInParent(this.summary.position, gamestate.resolution) +
-      vector(gamestate.resolution.x * 0.5, gamestate.resolution.y * 0.45)
-    )
+  #   this.summary.setLocation(
+  #     getLocationInParent(this.summary.position, gamestate.resolution) +
+  #     vector(gamestate.resolution.x * 0.5, gamestate.resolution.y * 0.45)
+  #   )
 
-    this.gameOverScreen.setLocation(
-      getLocationInParent(this.gameOverScreen.position, gamestate.resolution) +
-      vector(gamestate.resolution.x * 0.5, gamestate.resolution.y * 0.45)
-    )
-    this.gameOverScreen.size = gamestate.resolution
+  #   this.gameOverScreen.setLocation(
+  #     getLocationInParent(this.gameOverScreen.position, gamestate.resolution) +
+  #     vector(gamestate.resolution.x * 0.5, gamestate.resolution.y * 0.45)
+  #   )
+  #   this.gameOverScreen.size = gamestate.resolution
 
   result.bodies = newSafeset[PhysicsBody]()
   result.grid = grid
@@ -613,13 +628,13 @@ proc placeNest(this: GameLayer, tile: TileCoord) =
 
     this.checkNestAndEggCollisions(nest, tile)
 
-method update*(this: GameLayer, deltaTime: float, onChildUpdate: proc(child: Node) = nil) =
+method update*(this: GameLayer, deltaTime: float) =
   if this.isTimeCountingDown or not hasGameStarted:
     # Make the camera snap to pixels to prevent shaking effect).
     let cameraLoc = Game.scene.camera.getLocation()
     Game.scene.camera.setLocation(ceil cameraLoc.x, ceil cameraLoc.y)
 
-    procCall Layer(this).update(deltaTime, onChildUpdate)
+    procCall Layer(this).update(deltaTime)
     this.checkCollisions()
     this.updateTimer(deltaTime)
     this.animPlayer.update(deltaTime)

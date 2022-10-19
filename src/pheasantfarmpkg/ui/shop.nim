@@ -1,9 +1,6 @@
 import shade
-
-import strformat, tables
-
-import panel, ui, button, label, format, ../items
-export ui, button, label, items
+import std/tables
+import ../items
 
 var
   shopFont: Font
@@ -14,15 +11,15 @@ var
   multiplySprite: Sprite = nil
   moneySprite: Sprite = nil
 
-type Shop* = ref object of Panel
+type Shop* = ref object of UIComponent
   tryPurchase: proc(item: Item, qty: int)
 
 proc buy*(this: Shop, item: Item, qty: int)
-proc createItem(this: Shop, item: Item, position: Position, qty: int)
+proc createItem(this: Shop, item: Item, qty: int)
 
 proc newShop*(tryPurchase: proc(item: Item, qty: int), onExit: proc()): Shop =
   result = Shop()
-  initPanel(Panel(result))
+  initUIComponent(UIComponent(result))
 
   result.tryPurchase = tryPurchase
 
@@ -43,13 +40,14 @@ proc newShop*(tryPurchase: proc(item: Item, qty: int), onExit: proc()): Shop =
 
   shopFont = Fonts.load("./assets/fonts/kennypixel.ttf", 48).font
 
-  let bgImage = newButton("./assets/storephront.png")
-  result.size = bgImage.size
-  result.add(bgImage)
+  let bgImage = newUIImage("./assets/storephront.png")
+  result.width = bgImage.width
+  result.height = bgImage.height
+  result.addChild(bgImage)
 
-  let title = newLabel("The Thriphty Pheasant", WHITE)
-  title.position.y = -0.75
-  result.add(title)
+  let title = newText(shopFont, "The Thriphty Pheasant", WHITE)
+  # TODO: title.position.y = -0.75
+  result.addChild(title)
 
   # Create shop items
 
@@ -57,39 +55,51 @@ proc newShop*(tryPurchase: proc(item: Item, qty: int), onExit: proc()): Shop =
     topBoardYPosition = -0.28
     yDistance = 0.44
 
-  result.createItem(PHEED, newPosition(-0.6, topBoardYPosition), 1)
-  result.createItem(PHEED, newPosition(-0.6, topBoardYPosition + yDistance), 10)
-  result.createItem(PHEED, newPosition(-0.6, topBoardYPosition + yDistance * 2), 50)
+  # result.createItem(PHEED, newPosition(-0.6, topBoardYPosition), 1)
+  # result.createItem(PHEED, newPosition(-0.6, topBoardYPosition + yDistance), 10)
+  # result.createItem(PHEED, newPosition(-0.6, topBoardYPosition + yDistance * 2), 50)
 
-  result.createItem(WATER, newPosition(0.0, topBoardYPosition), 1)
-  result.createItem(WATER, newPosition(0.0, topBoardYPosition + yDistance), 10)
-  result.createItem(WATER, newPosition(0.0, topBoardYPosition + yDistance * 2), 50)
+  # result.createItem(WATER, newPosition(0.0, topBoardYPosition), 1)
+  # result.createItem(WATER, newPosition(0.0, topBoardYPosition + yDistance), 10)
+  # result.createItem(WATER, newPosition(0.0, topBoardYPosition + yDistance * 2), 50)
 
-  result.createItem(NEST, newPosition(0.6, topBoardYPosition), 1)
-  result.createItem(NEST, newPosition(0.6, topBoardYPosition + yDistance), 10)
-  result.createItem(NEST, newPosition(0.6, topBoardYPosition + yDistance * 2), 50)
+  # result.createItem(NEST, newPosition(0.6, topBoardYPosition), 1)
+  # result.createItem(NEST, newPosition(0.6, topBoardYPosition + yDistance), 10)
+  # result.createItem(NEST, 50)
+
+  result.createItem(PHEED, 1)
+  result.createItem(PHEED, 10)
+  result.createItem(PHEED, 50)
+
+  result.createItem(WATER, 1)
+  result.createItem(WATER, 10)
+  result.createItem(WATER, 50)
+
+  result.createItem(NEST, 1)
+  result.createItem(NEST, 10)
+  result.createItem(NEST, 50)
 
   let
     (_, exitImage) = Images.loadImage("./assets/x.png")
     exitSprite = newSprite(exitImage)
-    exitButton = newButton(exitSprite)
+    exitButton = newUISprite(exitSprite)
 
   exitSprite.offset.x = -10
   exitSprite.offset.y = 10
   exitButton.scale = vector(0.5, 0.5)
-  exitButton.position = newPosition(1, -1)
-  result.add(exitButton)
+  # exitButton.position = newPosition(1, -1)
+  result.addChild(exitButton)
 
   let this = result
-  exitButton.onClick:
+  exitButton.onPressed:
     this.visible = false
     onExit()
 
-proc createItem(this: Shop, item: Item, position: Position, qty: int) =
-  let board = newButton(shopBoardSprite)
-  board.position = position
-  this.add(board)
-  board.onClick:
+proc createItem(this: Shop, item: Item, qty: int) =
+  let board = newUISprite(shopBoardSprite)
+  # board.position = position
+  this.addChild(board)
+  board.onPressed:
     this.buy(item, qty)
 
   let totalPrice: int = ITEM_PRICES[item] * qty
@@ -103,33 +113,31 @@ proc createItem(this: Shop, item: Item, position: Position, qty: int) =
       of NEST:
         nestSprite
 
-  let itemButton = newButton(sprite)
+  let itemButton = newUISprite(sprite)
   itemButton.scale = vector(3, 3)
-  itemButton.position = newPosition(board.position.x - 0.25, board.position.y)
-  this.add(itemButton)
+  # itemButton.position = newPosition(board.position.x - 0.25, board.position.y)
+  this.addChild(itemButton)
 
-  let multiply = newButton(multiplySprite)
-  multiply.position.x = itemButton.position.x + 0.18
-  multiply.position.y = itemButton.position.y
-  this.add(multiply)
+  let multiply = newUISprite(multiplySprite)
+  # multiply.position.x = itemButton.position.x + 0.18
+  # multiply.position.y = itemButton.position.y
+  this.addChild(multiply)
 
-  let qtyLabel = newLabel($qty, WHITE)
-  qtyLabel.font = shopFont
-  qtyLabel.position.x = multiply.position.x + 0.08
-  qtyLabel.position.y = multiply.position.y
-  this.add(qtyLabel)
+  let qtyLabel = newText(shopFont, $qty, WHITE)
+  # qtyLabel.position.x = multiply.position.x + 0.08
+  # qtyLabel.position.y = multiply.position.y
+  this.addChild(qtyLabel)
 
-  let moneyImage = newButton(moneySprite)
+  let moneyImage = newUISprite(moneySprite)
   moneyImage.scale = vector(2.8, 2.8)
-  moneyImage.position.x = qtyLabel.position.x + 0.08
-  moneyImage.position.y = qtyLabel.position.y
-  this.add(moneyImage)
+  # moneyImage.position.x = qtyLabel.position.x + 0.08
+  # moneyImage.position.y = qtyLabel.position.y
+  this.addChild(moneyImage)
 
-  let priceLabel = newLabel($totalPrice, WHITE)
-  priceLabel.font = shopFont
-  priceLabel.position.x = moneyImage.position.x + 0.06 + (0.023 * floor(log10(float totalPrice)))
-  priceLabel.position.y = moneyImage.position.y
-  this.add(priceLabel)
+  let priceLabel = newText(shopFont, $totalPrice, WHITE)
+  # priceLabel.position.x = moneyImage.position.x + 0.06 + (0.023 * floor(log10(float totalPrice)))
+  # priceLabel.position.y = moneyImage.position.y
+  this.addChild(priceLabel)
 
 proc buy*(this: Shop, item: Item, qty: int) =
   if this.tryPurchase != nil:

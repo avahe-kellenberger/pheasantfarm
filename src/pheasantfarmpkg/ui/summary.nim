@@ -1,124 +1,127 @@
 import shade
 
-import strformat, tables
+import std/tables
 
-import panel, ui, button, label, format, ../egg
-export ui, button, label
+import ../egg, fontloader, format
 
-type Summary* = ref object of Panel
-  eggLabels: Table[EggKind, Label]
-  totalLabel: Label
-  taxPriceLabel: Label
-  daysTillTaxLabel: Label
-  taxMoneyImage: Button
-  shopLabel: Label
+type Summary* = ref object of UIComponent
+  eggLabels: Table[EggKind, UITextComponent]
+  totalLabel: UITextComponent
+  taxPriceLabel: UITextComponent
+  daysTillTaxLabel: UITextComponent
+  taxMoneyImage: UIImage
+  shopLabel: UITextComponent
 
-proc setupEggRow(this: Summary, eggKind: EggKind): Label =
-  result = newLabel("00", WHITE)
-  result.position.x = 0.55
-  result.position.y = -0.5 + ord(eggKind) * 0.15
+proc setupEggRow(this: Summary, eggKind: EggKind): UITextComponent =
+  let font = getFont()
+  result = newText(font, "00", WHITE)
+  # result.position.x = 0.55
+  # result.position.y = -0.5 + ord(eggKind) * 0.15
 
-  let eggImage = newButton(newSprite(getEggImage(), 4, 1))
-  eggImage.position.x = result.position.x - 0.48
-  eggImage.position.y = result.position.y
+  let eggImage = newUISprite(newSprite(getEggImage(), 4, 1))
+  # eggImage.position.x = result.position.x - 0.48
+  # eggImage.position.y = result.position.y
   eggImage.sprite.frameCoords.x = ord(eggKind)
   eggImage.scale = vector(6.0, 6.0)
-  this.add(eggImage)
+  this.addChild(eggImage)
 
-  let priceLabel = newLabel(formatInt(EGG_PRICES[eggKind], 2), WHITE)
-  priceLabel.position.x = -0.45
-  priceLabel.position.y = result.position.y
-  this.add(priceLabel)
+  let priceLabel = newText(font, formatInt(EGG_PRICES[eggKind], 2), WHITE)
+  # priceLabel.position.x = -0.45
+  # priceLabel.position.y = result.position.y
+  this.addChild(priceLabel)
 
-  let multiply = newButton("./assets/multiply.png")
-  multiply.position.x = priceLabel.position.x + 0.30
-  multiply.position.y = priceLabel.position.y
-  this.add(multiply)
+  let multiply = newUIImage("./assets/multiply.png")
+  # multiply.position.x = priceLabel.position.x + 0.30
+  # multiply.position.y = priceLabel.position.y
+  this.addChild(multiply)
 
-  let moneyImage = newButton("./assets/money.png")
+  let moneyImage = newUIImage("./assets/money.png")
   moneyImage.scale = vector(2.8, 2.8)
-  moneyImage.position.x = priceLabel.position.x - 0.33
-  moneyImage.position.y = priceLabel.position.y
-  this.add(moneyImage)
+  # moneyImage.position.x = priceLabel.position.x - 0.33
+  # moneyImage.position.y = priceLabel.position.y
+  this.addChild(moneyImage)
 
 proc newSummary*(goToShop: proc()): Summary =
   result = Summary()
-  initPanel(Panel(result))
-  result.eggLabels = initTable[EggKind, Label]()
+  initUIComponent(UIComponent(result))
+  result.eggLabels = initTable[EggKind, UITextComponent]()
 
-  let bgImage = newButton("./assets/summary_board.png")
-  result.size = bgImage.size
-  result.add(bgImage)
+  let font = getFont()
 
-  let titleDaily = newLabel("Daily", WHITE)
-  titleDaily.position.y = -0.85
-  result.add(titleDaily)
+  let bgImage = newUIImage("./assets/summary_board.png")
+  result.width = float bgImage.image.w
+  result.height = float bgImage.image.h
+  result.addChild(bgImage)
 
-  let titleSummary = newLabel("Summary", WHITE)
-  titleSummary.position.y = -0.7
-  result.add(titleSummary)
+  let titleDaily = newText(font, "Daily", WHITE)
+  # titleDaily.position.y = -0.85
+  result.addChild(titleDaily)
+
+  let titleSummary = newText(font, "Summary", WHITE)
+  # titleSummary.position.y = -0.7
+  result.addChild(titleSummary)
 
   for kind in EggKind.low .. EggKind.high:
     let label = result.setupEggRow(kind)
-    result.add(label)
+    result.addChild(label)
     result.eggLabels[kind] = label
 
-  result.totalLabel = newLabel("Total: 0000", WHITE)
-  result.totalLabel.position.y = result.eggLabels[EggKind.GOLDEN].position.y + 0.2
-  result.add(result.totalLabel)
+  result.totalLabel = newText(font, "Total: 0000", WHITE)
+  # result.totalLabel.position.y = result.eggLabels[EggKind.GOLDEN].position.y + 0.2
+  result.addChild(result.totalLabel)
 
-  let shopButton = newButton("./assets/shop_board.png")
+  let shopButton = newUIImage("./assets/shop_board.png")
   shopButton.scale = vector(0.75, 0.75)
-  shopButton.position.y = 0.8
-  result.add(shopButton)
+  # shopButton.position.y = 0.8
+  result.addChild(shopButton)
 
   # Taxes
 
-  let ipsBuildingIcon = newButton("./assets/ips.png")
+  let ipsBuildingIcon = newUIImage("./assets/ips.png")
   ipsBuildingIcon.scale = vector(3.0, 3.0)
-  ipsBuildingIcon.position.x = -0.3
-  ipsBuildingIcon.position.y = 0.38
-  result.add(ipsBuildingIcon)
+  # ipsBuildingIcon.position.x = -0.3
+  # ipsBuildingIcon.position.y = 0.38
+  result.addChild(ipsBuildingIcon)
 
-  let taxLabel = newLabel("tax:", WHITE)
-  taxLabel.position.x = 0.25
-  taxLabel.position.y = ipsBuildingIcon.position.y
-  result.add(taxLabel)
+  let taxLabel = newText(font, "tax:", WHITE)
+  # taxLabel.position.x = 0.25
+  # taxLabel.position.y = ipsBuildingIcon.position.y
+  result.addChild(taxLabel)
 
-  result.taxMoneyImage = newButton("./assets/money.png")
+  result.taxMoneyImage = newUIImage("./assets/money.png")
   result.taxMoneyImage.scale = vector(2.8, 2.8)
-  result.taxMoneyImage.position.x = -0.67
-  result.taxMoneyImage.position.y = ipsBuildingIcon.position.y + 0.15
-  result.add(result.taxMoneyImage)
+  # result.taxMoneyImage.position.x = -0.67
+  # result.taxMoneyImage.position.y = ipsBuildingIcon.position.y + 0.15
+  result.addChild(result.taxMoneyImage)
 
   const taxColor = newColor(160, 20, 20)
-  result.taxPriceLabel = newLabel("0000", taxColor)
-  result.taxPriceLabel.position.x = result.taxMoneyImage.position.x + 0.82
-  result.taxPriceLabel.position.y = result.taxMoneyImage.position.y
-  result.add(result.taxPriceLabel)
+  result.taxPriceLabel = newText(font, "0000", taxColor)
+  # result.taxPriceLabel.position.x = result.taxMoneyImage.position.x + 0.82
+  # result.taxPriceLabel.position.y = result.taxMoneyImage.position.y
+  result.addChild(result.taxPriceLabel)
 
-  result.daysTillTaxLabel = newLabel("", taxColor)
-  result.daysTillTaxLabel.position.y = result.taxPriceLabel.position.y + 0.04
-  result.add(result.daysTillTaxLabel)
+  result.daysTillTaxLabel = newText(font, "", taxColor)
+  # result.daysTillTaxLabel.position.y = result.taxPriceLabel.position.y + 0.04
+  result.addChild(result.daysTillTaxLabel)
 
   let this = result
-  shopButton.onClick:
+  shopButton.onPressed:
     this.visible = false
     goToShop()
 
-  result.shopLabel = newLabel("Shop", WHITE)
-  result.shopLabel.position.y = shopButton.position.y
-  result.add(result.shopLabel)
+  result.shopLabel = newText(font, "Shop", WHITE)
+  # result.shopLabel.position.y = shopButton.position.y
+  result.addChild(result.shopLabel)
 
 proc setEggCount*(this: Summary, eggCount: CountTable[EggKind]) =
   for kind, label in this.eggLabels.pairs():
-    label.setText(formatInt(eggCount[kind], 3))
+    label.text = formatInt(eggCount[kind], 3)
 
 proc setTotal*(this: Summary, total: int) =
-  this.totalLabel.setText("Total: " & $total)
+  this.totalLabel.text = "Total: " & $total
 
 proc setTaxPrice*(this: Summary, tax: int) =
-  this.taxPriceLabel.setText("-" & formatInt(tax, 6))
+  this.taxPriceLabel.text = "-" & formatInt(tax, 6)
 
 proc updateDaysTillTax*(this: Summary, currentDay, taxDayFrequency: int) =
   let
@@ -128,9 +131,9 @@ proc updateDaysTillTax*(this: Summary, currentDay, taxDayFrequency: int) =
   if dayMod != 0:
     this.daysTillTaxLabel.visible = true
     if daysTill == 1:
-      this.daysTillTaxLabel.setText($daysTill & " day left")
+      this.daysTillTaxLabel.text = $daysTill & " day left"
     else:
-      this.daysTillTaxLabel.setText($daysTill & " days left")
+      this.daysTillTaxLabel.text = $daysTill & " days left"
     this.taxMoneyImage.visible = false
     this.taxPriceLabel.visible = false
   else:
@@ -139,5 +142,5 @@ proc updateDaysTillTax*(this: Summary, currentDay, taxDayFrequency: int) =
     this.taxPriceLabel.visible = true
 
 proc setOutOfFunds*(this: Summary) =
-  this.shopLabel.setText("Next")
+  this.shopLabel.text = "Next"
 
