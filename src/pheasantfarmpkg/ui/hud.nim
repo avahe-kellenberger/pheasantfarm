@@ -55,7 +55,6 @@ proc newHUD*(): HUD =
     let wrapper = wrap(sun, result.dayLabel)
     wrapper.height = 64.0
     wrapper.width = 100.0
-
     bgImage.addChild(wrapper)
 
   block time:

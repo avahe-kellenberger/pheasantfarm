@@ -145,16 +145,9 @@ proc newGameLayer*(grid: Grid): GameLayer =
     proc () = this.openSummary,
     proc () = this.startNewDay
   )
-  # result.overlay.width = gamestate.resolution.x
-  # result.overlay.height = gamestate.resolution.y
 
   result.overlay.visible = false
-  # this.overlay.setLocation(
-  #   getLocationInParent(this.overlay.position, gamestate.resolution) +
-  #   gamestate.resolution * 0.5
-  # )
 
-  # Game.hud.addChild(result.overlay)
   root.addChild(result.overlay)
 
   let hudContainer = newUIComponent()
@@ -178,7 +171,6 @@ proc newGameLayer*(grid: Grid): GameLayer =
   result.itemPanel.setWaterCount(result.waterCount)
   result.itemPanel.setNestCount(result.nestCount)
   result.itemPanel.visible = false
-  result.itemPanel.borderWidth = 2.0
 
   itemPanelContainer.addChild(result.itemPanel)
   root.addChild(itemPanelContainer)
@@ -188,11 +180,6 @@ proc newGameLayer*(grid: Grid): GameLayer =
     (proc() = this.loadNewDay())
   )
   result.shop.visible = false
-  # result.shop.setLocation(
-  #   getLocationInParent(this.shop.position, gamestate.resolution) +
-  #   vector(gamestate.resolution.x * 0.5, gamestate.resolution.y * 0.35)
-  # )
-  # Game.hud.addChild(result.shop)
   root.addChild(result.shop)
 
   result.summary = newSummary(
@@ -203,57 +190,13 @@ proc newGameLayer*(grid: Grid): GameLayer =
         this.openShop()
   )
   result.summary.visible = false
-  # result.summary.setLocation(
-  #   getLocationInParent(this.summary.position, gamestate.resolution) +
-  #   vector(gamestate.resolution.x * 0.5, gamestate.resolution.y * 0.45)
-  # )
-  # Game.hud.addChild(result.summary)
 
   root.addChild(result.summary)
 
   result.gameOverScreen = newGameOverScreen()
   result.gameOverScreen.visible = false
-  # result.gameOverScreen.setLocation(
-  #   getLocationInParent(result.gameOverScreen.position, gamestate.resolution) +
-  #   vector(gamestate.resolution.x * 0.5, gamestate.resolution.y * 0.45)
-  # )
-  # result.gameOverScreen.size = gamestate.resolution
-  # Game.hud.addChild(result.gameOverScreen)
-  
+
   root.addChild(result.gameOverScreen)
-
-  # gamestate.onResolutionChanged:
-  #   this.hud.setLocation(
-  #     getLocationInParent(this.hud.position, gamestate.resolution) +
-  #     vector(gamestate.resolution.x * 0.5, gamestate.resolution.y * 0.05)
-  #   )
-
-  #   this.itemPanel.setLocation(
-  #     getLocationInParent(this.itemPanel.position, gamestate.resolution) +
-  #     vector(this.itemPanel.size.x * 0.5, gamestate.resolution.y * 0.5)
-  #   )
-
-  #   this.overlay.setLocation(
-  #     getLocationInParent(this.overlay.position, gamestate.resolution) +
-  #     gamestate.resolution * 0.5
-  #   )
-  #   this.overlay.size = gamestate.resolution
-
-  #   this.shop.setLocation(
-  #     getLocationInParent(this.shop.position, gamestate.resolution) +
-  #     vector(gamestate.resolution.x * 0.5, gamestate.resolution.y * 0.35)
-  #   )
-
-  #   this.summary.setLocation(
-  #     getLocationInParent(this.summary.position, gamestate.resolution) +
-  #     vector(gamestate.resolution.x * 0.5, gamestate.resolution.y * 0.45)
-  #   )
-
-  #   this.gameOverScreen.setLocation(
-  #     getLocationInParent(this.gameOverScreen.position, gamestate.resolution) +
-  #     vector(gamestate.resolution.x * 0.5, gamestate.resolution.y * 0.45)
-  #   )
-  #   this.gameOverScreen.size = gamestate.resolution
 
   result.bodies = newSafeset[PhysicsBody]()
   result.grid = grid
