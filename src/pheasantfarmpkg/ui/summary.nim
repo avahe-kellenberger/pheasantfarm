@@ -12,106 +12,127 @@ type Summary* = ref object of UIComponent
   taxMoneyImage: UIImage
   shopLabel: UITextComponent
 
-proc setupEggRow(this: Summary, eggKind: EggKind): UITextComponent =
-  let font = getFont()
-  result = newText(font, "00", WHITE)
-  # result.position.x = 0.55
-  # result.position.y = -0.5 + ord(eggKind) * 0.15
+proc setupEggRow(this: Summary, eggKind: EggKind, imageWidth: float): UIComponent =
+  result = newUIComponent()
+  result.width = imageWidth
+  result.height = 48.0
 
-  let eggImage = newUISprite(newSprite(getEggImage(), 4, 1))
-  # eggImage.position.x = result.position.x - 0.48
-  # eggImage.position.y = result.position.y
-  eggImage.sprite.frameCoords.x = ord(eggKind)
-  eggImage.scale = vector(6.0, 6.0)
-  this.addChild(eggImage)
+  result.alignHorizontal = Alignment.SpaceEvenly
+  result.alignVertical = Alignment.Center
 
-  let priceLabel = newText(font, formatInt(EGG_PRICES[eggKind], 2), WHITE)
-  # priceLabel.position.x = -0.45
-  # priceLabel.position.y = result.position.y
-  this.addChild(priceLabel)
-
-  let multiply = newUIImage("./assets/multiply.png")
-  # multiply.position.x = priceLabel.position.x + 0.30
-  # multiply.position.y = priceLabel.position.y
-  this.addChild(multiply)
+  result.stackDirection = StackDirection.Horizontal
 
   let moneyImage = newUIImage("./assets/money.png")
   moneyImage.scale = vector(2.8, 2.8)
-  # moneyImage.position.x = priceLabel.position.x - 0.33
-  # moneyImage.position.y = priceLabel.position.y
-  this.addChild(moneyImage)
+  result.addChild(moneyImage)
+
+  let font = getFont()
+  let priceLabel = newText(font, formatInt(EGG_PRICES[eggKind], 2), WHITE)
+  result.addChild(priceLabel)
+
+  let multiply = newUIImage("./assets/multiply.png")
+  result.addChild(multiply)
+
+  let eggImage = newUISprite(newSprite(getEggImage(), 4, 1))
+  eggImage.sprite.frameCoords.x = ord(eggKind)
+  eggImage.scale = vector(6.0, 6.0)
+  result.addChild(eggImage)
+
+  let label = newText(font, "00", WHITE)
+  result.addChild(label)
+
+  this.eggLabels[eggKind] = label
 
 proc newSummary*(goToShop: proc()): Summary =
   result = Summary()
   initUIComponent(UIComponent(result))
-  result.eggLabels = initTable[EggKind, UITextComponent]()
+
+  let bgImage = newUIImage("./assets/summary_board.png", FILTER_NEAREST)
+  result.addChild(bgImage)
+
+  result.width = bgImage.getImageWidth()
+  result.height = bgImage.getImageHeight()
+  result.alignHorizontal = Alignment.Center
+  result.alignVertical = Alignment.Center
+
+  bgImage.stackDirection = StackDirection.Vertical
+  bgImage.alignHorizontal = Alignment.Center
+  bgImage.alignVertical = Alignment.Center
 
   let font = getFont()
 
-  let bgImage = newUIImage("./assets/summary_board.png")
-  result.width = float bgImage.image.w
-  result.height = float bgImage.image.h
-  result.addChild(bgImage)
-
   let titleDaily = newText(font, "Daily", WHITE)
-  # titleDaily.position.y = -0.85
-  result.addChild(titleDaily)
+  bgImage.addChild(titleDaily)
 
   let titleSummary = newText(font, "Summary", WHITE)
-  # titleSummary.position.y = -0.7
-  result.addChild(titleSummary)
+  titleSummary.margin = margin(0, 0, 0, 24)
+  bgImage.addChild(titleSummary)
 
+  result.eggLabels = initTable[EggKind, UITextComponent]()
   for kind in EggKind.low .. EggKind.high:
-    let label = result.setupEggRow(kind)
-    result.addChild(label)
-    result.eggLabels[kind] = label
+    let label = result.setupEggRow(kind, bgImage.getImageWidth())
+    bgImage.addChild(label)
 
   result.totalLabel = newText(font, "Total: 0000", WHITE)
-  # result.totalLabel.position.y = result.eggLabels[EggKind.GOLDEN].position.y + 0.2
-  result.addChild(result.totalLabel)
+  result.totalLabel.margin = margin(0, 0, 0, 12)
+  bgImage.addChild(result.totalLabel)
 
-  let shopButton = newUIImage("./assets/shop_board.png")
+  let shopButton = newUIImage("./assets/shop_board.png", FILTER_NEAREST)
+  shopButton.imageFit = Cover
   shopButton.scale = vector(0.75, 0.75)
-  # shopButton.position.y = 0.8
-  result.addChild(shopButton)
+  shopButton.alignHorizontal = Alignment.Center
+  shopButton.alignVertical = Alignment.Center
 
-  # Taxes
+  block taxes:
+    let container = newUIComponent()
+    container.width = bgImage.getImageWidth()
+    container.height = 120.0
+    container.stackDirection = StackDirection.Vertical
+    container.alignHorizontal = Alignment.Center
+    container.alignVertical = Alignment.Center
 
-  let ipsBuildingIcon = newUIImage("./assets/ips.png")
-  ipsBuildingIcon.scale = vector(3.0, 3.0)
-  # ipsBuildingIcon.position.x = -0.3
-  # ipsBuildingIcon.position.y = 0.38
-  result.addChild(ipsBuildingIcon)
+    let ipsBuildingIcon = newUIImage("./assets/ips.png", FILTER_NEAREST)
+    ipsBuildingIcon.scale = vector(3.0, 3.0)
 
-  let taxLabel = newText(font, "tax:", WHITE)
-  # taxLabel.position.x = 0.25
-  # taxLabel.position.y = ipsBuildingIcon.position.y
-  result.addChild(taxLabel)
+    let taxLabel = newText(font, "tax:", WHITE)
+    taxLabel.margin = margin(10, 0, 0, 0)
 
-  result.taxMoneyImage = newUIImage("./assets/money.png")
-  result.taxMoneyImage.scale = vector(2.8, 2.8)
-  # result.taxMoneyImage.position.x = -0.67
-  # result.taxMoneyImage.position.y = ipsBuildingIcon.position.y + 0.15
-  result.addChild(result.taxMoneyImage)
+    let taxLabelContainer = newUIComponent()
+    taxLabelContainer.width = bgImage.getImageWidth()
+    # TODO: Using hack for height because of UIImage scaling bug.
+    taxLabelContainer.height = ipsBuildingIcon.getImageHeight() * ipsBuildingIcon.scale.y + 10.0
+    taxLabelContainer.stackDirection = StackDirection.Horizontal
+    taxLabelContainer.alignHorizontal = Alignment.Center
+    taxLabelContainer.alignVertical = Alignment.Center
 
-  const taxColor = newColor(160, 20, 20)
-  result.taxPriceLabel = newText(font, "0000", taxColor)
-  # result.taxPriceLabel.position.x = result.taxMoneyImage.position.x + 0.82
-  # result.taxPriceLabel.position.y = result.taxMoneyImage.position.y
-  result.addChild(result.taxPriceLabel)
+    taxLabelContainer.addChild(ipsBuildingIcon)
+    taxLabelContainer.addChild(taxLabel)
+    taxLabelContainer.margin = margin(0, 0, 0, 12)
+    container.addChild(taxLabelContainer)
 
-  result.daysTillTaxLabel = newText(font, "", taxColor)
-  # result.daysTillTaxLabel.position.y = result.taxPriceLabel.position.y + 0.04
-  result.addChild(result.daysTillTaxLabel)
+    # TODO: The following 3 components are conditional upon the tax day.
+
+    result.taxMoneyImage = newUIImage("./assets/money.png", FILTER_NEAREST)
+    result.taxMoneyImage.scale = vector(2.8, 2.8)
+    # container.addChild(result.taxMoneyImage)
+
+    const taxColor = newColor(160, 20, 20)
+    result.taxPriceLabel = newText(font, "0000", taxColor)
+    # bgImage.addChild(result.taxPriceLabel)
+
+    result.daysTillTaxLabel = newText(font, "", taxColor)
+    container.addChild(result.daysTillTaxLabel)
+
+    bgImage.addChild(container)
 
   let this = result
   shopButton.onPressed:
     this.visible = false
     goToShop()
 
+  bgImage.addChild(shopButton)
   result.shopLabel = newText(font, "Shop", WHITE)
-  # result.shopLabel.position.y = shopButton.position.y
-  result.addChild(result.shopLabel)
+  shopButton.addChild(result.shopLabel)
 
 proc setEggCount*(this: Summary, eggCount: CountTable[EggKind]) =
   for kind, label in this.eggLabels.pairs():

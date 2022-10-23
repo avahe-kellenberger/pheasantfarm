@@ -18,7 +18,7 @@ import tags as tagsModule
 
 const
   numStartingPheasants = 10 # 10_000
-  dayLengthInSeconds = 30
+  dayLengthInSeconds = 1
   startingMoney = 50
   startingPheedCount = 0 # numStartingPheasants * 2
   startingWaterCount = 0 # numStartingPheasants * 2
@@ -98,7 +98,8 @@ proc `innerFenceArea=`*(this: GameLayer, aabb: AABB) =
   )
 
 proc playMusic(fadeInTime: float = 0.0) =
-  fadeInMusic(song, fadeInTime, 0.25)
+  discard
+  # fadeInMusic(song, fadeInTime, 0.25)
 
 proc isBlocking(body: PhysicsBody): bool =
   return not (body of Egg)
@@ -182,6 +183,11 @@ proc newGameLayer*(grid: Grid): GameLayer =
   result.shop.visible = false
   root.addChild(result.shop)
 
+  let summaryContainer = newUIComponent()
+  summaryContainer.alignHorizontal = Alignment.Center
+  summaryContainer.alignVertical = Alignment.Center
+  summaryContainer.processInputEvents = false
+
   result.summary = newSummary(
     proc() =
       if this.loseCondition():
@@ -190,8 +196,9 @@ proc newGameLayer*(grid: Grid): GameLayer =
         this.openShop()
   )
   result.summary.visible = false
+  summaryContainer.addChild(result.summary)
 
-  root.addChild(result.summary)
+  root.addChild(summaryContainer)
 
   result.gameOverScreen = newGameOverScreen()
   result.gameOverScreen.visible = false
