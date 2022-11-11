@@ -22,15 +22,17 @@ proc setupEggRow(this: Summary, eggKind: EggKind, imageWidth: float): UIComponen
 
   result.stackDirection = StackDirection.Horizontal
 
-  let moneyImage = newUIImage("./assets/money.png")
+  let moneyImage = newUIImage("./assets/money.png", FILTER_NEAREST)
   moneyImage.scale = vector(2.8, 2.8)
   result.addChild(moneyImage)
 
   let font = getFont()
-  let priceLabel = newText(font, formatInt(EGG_PRICES[eggKind], 2), WHITE)
+  let priceLabel = newText(font, formatInt(EGG_PRICES[eggKind], 2), WHITE, FILTER_NEAREST)
+  priceLabel.textAlignHorizontal = TextAlignment.Center
+  priceLabel.textAlignVertical = TextAlignment.Center
   result.addChild(priceLabel)
 
-  let multiply = newUIImage("./assets/multiply.png")
+  let multiply = newUIImage("./assets/multiply.png", FILTER_NEAREST)
   result.addChild(multiply)
 
   let eggImage = newUISprite(newSprite(getEggImage(), 4, 1))
@@ -38,7 +40,9 @@ proc setupEggRow(this: Summary, eggKind: EggKind, imageWidth: float): UIComponen
   eggImage.scale = vector(6.0, 6.0)
   result.addChild(eggImage)
 
-  let label = newText(font, "00", WHITE)
+  let label = newText(font, "00", WHITE, FILTER_NEAREST)
+  label.textAlignHorizontal = TextAlignment.Center
+  label.textAlignVertical = TextAlignment.Center
   result.addChild(label)
 
   this.eggLabels[eggKind] = label
@@ -61,10 +65,14 @@ proc newSummary*(goToShop: proc()): Summary =
 
   let font = getFont()
 
-  let titleDaily = newText(font, "Daily", WHITE)
+  let titleDaily = newText(font, "Daily", WHITE, FILTER_NEAREST)
+  titleDaily.textAlignHorizontal = TextAlignment.Center
+  titleDaily.textAlignVertical = TextAlignment.Center
   bgImage.addChild(titleDaily)
 
-  let titleSummary = newText(font, "Summary", WHITE)
+  let titleSummary = newText(font, "Summary", WHITE, FILTER_NEAREST)
+  titleSummary.textAlignHorizontal = TextAlignment.Center
+  titleSummary.textAlignVertical = TextAlignment.Center
   titleSummary.margin = margin(0, 0, 0, 24)
   bgImage.addChild(titleSummary)
 
@@ -73,7 +81,9 @@ proc newSummary*(goToShop: proc()): Summary =
     let label = result.setupEggRow(kind, bgImage.getImageWidth())
     bgImage.addChild(label)
 
-  result.totalLabel = newText(font, "Total: 0000", WHITE)
+  result.totalLabel = newText(font, "Total: 0000", WHITE, FILTER_NEAREST)
+  result.totalLabel.textAlignHorizontal = TextAlignment.Center
+  result.totalLabel.textAlignVertical = TextAlignment.Center
   result.totalLabel.margin = margin(0, 0, 0, 12)
   bgImage.addChild(result.totalLabel)
 
@@ -94,7 +104,9 @@ proc newSummary*(goToShop: proc()): Summary =
     let ipsBuildingIcon = newUIImage("./assets/ips.png", FILTER_NEAREST)
     ipsBuildingIcon.scale = vector(3.0, 3.0)
 
-    let taxLabel = newText(font, "tax:", WHITE)
+    let taxLabel = newText(font, "tax:", WHITE, FILTER_NEAREST)
+    taxLabel.textAlignHorizontal = TextAlignment.Center
+    taxLabel.textAlignVertical = TextAlignment.Center
     taxLabel.margin = margin(10, 0, 0, 0)
 
     let taxLabelContainer = newUIComponent()
@@ -107,20 +119,27 @@ proc newSummary*(goToShop: proc()): Summary =
 
     taxLabelContainer.addChild(ipsBuildingIcon)
     taxLabelContainer.addChild(taxLabel)
-    taxLabelContainer.margin = margin(0, 0, 0, 12)
+    # taxLabelContainer.margin = margin(0, 0, 0, 12)
+
+    container.margin = margin(0, 0, 0, 12)
     container.addChild(taxLabelContainer)
 
     # TODO: The following 3 components are conditional upon the tax day.
 
     result.taxMoneyImage = newUIImage("./assets/money.png", FILTER_NEAREST)
     result.taxMoneyImage.scale = vector(2.8, 2.8)
+    result.taxMoneyImage.margin = margin(0, 12, 0, 0)
     # container.addChild(result.taxMoneyImage)
 
     const taxColor = newColor(160, 20, 20)
-    result.taxPriceLabel = newText(font, "0000", taxColor)
+    result.taxPriceLabel = newText(font, "0000", taxColor, FILTER_NEAREST)
+    result.taxPriceLabel.textAlignHorizontal = TextAlignment.Center
+    result.taxPriceLabel.textAlignVertical = TextAlignment.Center
     # bgImage.addChild(result.taxPriceLabel)
 
-    result.daysTillTaxLabel = newText(font, "", taxColor)
+    result.daysTillTaxLabel = newText(font, "", taxColor, FILTER_NEAREST)
+    result.daysTillTaxLabel.textAlignHorizontal = TextAlignment.Center
+    result.daysTillTaxLabel.textAlignVertical = TextAlignment.Center
     container.addChild(result.daysTillTaxLabel)
 
     bgImage.addChild(container)
@@ -131,7 +150,9 @@ proc newSummary*(goToShop: proc()): Summary =
     goToShop()
 
   bgImage.addChild(shopButton)
-  result.shopLabel = newText(font, "Shop", WHITE)
+  result.shopLabel = newText(font, "Shop", WHITE, FILTER_NEAREST)
+  result.shopLabel.textAlignHorizontal = TextAlignment.Center
+  result.shopLabel.textAlignVertical = TextAlignment.Center
   shopButton.addChild(result.shopLabel)
 
 proc setEggCount*(this: Summary, eggCount: CountTable[EggKind]) =

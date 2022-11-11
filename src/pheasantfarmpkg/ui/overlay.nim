@@ -92,7 +92,7 @@ proc setDay*(this: Overlay, day: int) =
 proc update*(this: Overlay, deltaTime: float) =
   this.animationPlayer.update(deltaTime)
 
-method preRender*(this: Overlay, ctx: Target) =
+method preRender*(this: Overlay, ctx: Target, clippedRenderBounds: AABB) =
   ctx.rectangleFilled(
     0,
     0,
@@ -101,5 +101,5 @@ method preRender*(this: Overlay, ctx: Target) =
     this.currentColor
   )
 
-  procCall UIComponent(this).preRender(ctx)
+  procCall UIComponent(this).preRender(ctx, clippedRenderBounds)
 
