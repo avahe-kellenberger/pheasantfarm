@@ -1,8 +1,9 @@
 import shade
-import std/tables
-import ../items
+import std/[tables, strutils]
+import ../items, format
 
 var
+  titleFont: Font
   shopFont: Font
   shopBoardSprite: Sprite = nil
   pheedSprite: Sprite = nil
@@ -39,9 +40,10 @@ proc newShop*(tryPurchase: proc(item: Item, qty: int), onExit: proc()): Shop =
   multiplySprite = newSprite(Images.loadImage("./assets/multiply.png", FILTER_NEAREST).image)
   moneySprite = newSprite(Images.loadImage("./assets/money.png", FILTER_NEAREST).image)
 
-  shopFont = Fonts.load("./assets/fonts/kennypixel.ttf", 72).font
+  titleFont = Fonts.load("./assets/fonts/mozart.ttf", 72).font
+  shopFont = Fonts.load("./assets/fonts/mozart.ttf", 48).font
 
-  let title = newText(shopFont, "The Thriphty Pheasant", WHITE)
+  let title = newText(titleFont, "The Thriphty Pheasant", WHITE)
   result.addChild(title)
 
   # Create shop items
@@ -103,7 +105,10 @@ proc newShop*(tryPurchase: proc(item: Item, qty: int), onExit: proc()): Shop =
 proc createItem(this: Shop, parent: UIComponent, item: Item, qty: int) =
   let board = newUISprite(shopBoardSprite)
   board.margin = margin(0, 12.0, 0, 12.0)
-  board.stackDirection = StackDirection.Overlap
+  board.stackDirection = StackDirection.Horizontal
+  board.alignVertical = Alignment.Center
+  board.alignHorizontal = Alignment.SpaceEvenly
+
   parent.addChild(board)
   board.onPressed:
     this.buy(item, qty)
@@ -120,29 +125,25 @@ proc createItem(this: Shop, parent: UIComponent, item: Item, qty: int) =
         nestSprite
 
   let itemButton = newUISprite(sprite)
+  itemButton.processInputEvents = false
   itemButton.scale = vector(3, 3)
-  # itemButton.position = newPosition(board.position.x - 0.25, board.position.y)
   board.addChild(itemButton)
 
   let multiply = newUISprite(multiplySprite)
-  # multiply.position.x = itemButton.position.x + 0.18
-  # multiply.position.y = itemButton.position.y
+  multiply.processInputEvents = false
   board.addChild(multiply)
 
-  let qtyLabel = newText(shopFont, $qty, WHITE)
-  # qtyLabel.position.x = multiply.position.x + 0.08
-  # qtyLabel.position.y = multiply.position.y
+  let qtyLabel = newText(shopFont, alignLeft($qty, 2), WHITE)
+  qtyLabel.processInputEvents = false
   board.addChild(qtyLabel)
 
   let moneyImage = newUISprite(moneySprite)
+  moneyImage.processInputEvents = false
   moneyImage.scale = vector(2.8, 2.8)
-  # moneyImage.position.x = qtyLabel.position.x + 0.08
-  # moneyImage.position.y = qtyLabel.position.y
   board.addChild(moneyImage)
 
-  let priceLabel = newText(shopFont, $totalPrice, WHITE)
-  # priceLabel.position.x = moneyImage.position.x + 0.06 + (0.023 * floor(log10(float totalPrice)))
-  # priceLabel.position.y = moneyImage.position.y
+  let priceLabel = newText(shopFont, alignLeft($totalPrice, 3), WHITE)
+  priceLabel.processInputEvents = false
   board.addChild(priceLabel)
 
 proc buy*(this: Shop, item: Item, qty: int) =

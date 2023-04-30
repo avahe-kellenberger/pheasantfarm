@@ -18,7 +18,7 @@ import tags as tagsModule
 
 const
   numStartingPheasants = 10 # 10_000
-  dayLengthInSeconds = 1
+  dayLengthInSeconds = 15 # 30
   startingMoney = 50
   startingPheedCount = 0 # numStartingPheasants * 2
   startingWaterCount = 0 # numStartingPheasants * 2
@@ -144,6 +144,7 @@ proc newGameLayer*(grid: Grid): GameLayer =
   let root = Game.getUIRoot()
   root.alignVertical = Alignment.Center
   root.alignHorizontal = Alignment.Center
+  root.stackDirection = Overlap
 
   result.overlay = newOverlay(
     fadeAnimationTime,

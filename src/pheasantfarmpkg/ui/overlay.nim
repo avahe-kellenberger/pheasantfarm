@@ -17,11 +17,14 @@ proc createFadeInAnimation(this: Overlay): Animation
 proc newOverlay*(fadeTime: float, onFadeOutFinished: proc(), onFadeInFinished: proc()): Overlay =
   result = Overlay()
   initUIComponent(UIComponent result)
+  result.alignVertical = Alignment.Center
+  result.alignHorizontal = Alignment.Center
 
   result.currentColor = newColor(0, 0, 0, 0)
   result.dayLabel = newText(getFont(), "01", WHITE)
   result.dayLabel.visible = false
   result.addChild(result.dayLabel)
+  result.dayLabel.determineWidthAndHeight()
 
   result.animationPlayer = newAnimationPlayer()
 
@@ -78,17 +81,17 @@ proc createFadeInAnimation(this: Overlay): Animation =
       (endColor, anim.duration)
     ]
 
-    visibilityFrames: seq[KeyFrame[bool]] = @[
+    textVisibilityFrames: seq[KeyFrame[bool]] = @[
       (true, 0.0),
       (false, 2.0)
     ]
 
   anim.addNewAnimationTrack(this.currentColor, frames)
-  anim.addNewAnimationTrack(this.dayLabel.visible, visibilityFrames)
+  anim.addNewAnimationTrack(this.dayLabel.visible, textVisibilityFrames)
   return anim
 
 proc setDay*(this: Overlay, day: int) =
-  this.dayLabel.text = "Day " & formatInt(day, 2)
+  this.dayLabel.text = "Day " & $day
 
 proc update*(this: Overlay, deltaTime: float) =
   this.animationPlayer.update(deltaTime)
