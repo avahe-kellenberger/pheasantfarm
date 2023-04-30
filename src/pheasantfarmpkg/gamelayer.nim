@@ -24,6 +24,7 @@ const
   startingWaterCount = 0 # numStartingPheasants * 2
   startingNestCount = 0 # 2
   taxDayFrequency = 4
+  fadeAnimationTime = 15.0
 
 var
   hasGameStarted = false
@@ -141,8 +142,11 @@ proc newGameLayer*(grid: Grid): GameLayer =
   this.animPlayer.addAnimation("invalid-tile", invalidTileAnimation)
 
   let root = Game.getUIRoot()
+  root.alignVertical = Alignment.Center
+  root.alignHorizontal = Alignment.Center
 
   result.overlay = newOverlay(
+    fadeAnimationTime,
     proc () = this.openSummary,
     proc () = this.startNewDay
   )
@@ -183,11 +187,6 @@ proc newGameLayer*(grid: Grid): GameLayer =
   result.shop.visible = false
   root.addChild(result.shop)
 
-  let summaryContainer = newUIComponent()
-  summaryContainer.alignHorizontal = Alignment.Center
-  summaryContainer.alignVertical = Alignment.Center
-  summaryContainer.processInputEvents = false
-
   result.summary = newSummary(
     proc() =
       if this.loseCondition():
@@ -196,9 +195,7 @@ proc newGameLayer*(grid: Grid): GameLayer =
         this.openShop()
   )
   result.summary.visible = false
-  summaryContainer.addChild(result.summary)
-
-  root.addChild(summaryContainer)
+  root.addChild(result.summary)
 
   result.gameOverScreen = newGameOverScreen()
   result.gameOverScreen.visible = false
@@ -529,10 +526,10 @@ proc updateTimer(this: GameLayer, deltaTime: float) =
     if oldTimeInSeconds != newTimeInSeconds:
       this.onSecondCountdown(newTimeInSeconds)
 
-    if not this.overlay.visible and this.timeRemaining <= 14.5:
+    if not this.overlay.visible and this.timeRemaining <= fadeAnimationTime - 0.5:
       this.overlay.visible = true
       this.overlay.animationPlayer.play("fade-out")
-      this.overlay.animationPlayer.update(15 - this.timeRemaining)
+      this.overlay.animationPlayer.update(fadeAnimationTime - this.timeRemaining)
 
 proc getTilePlayerIsFacing(this: GameLayer): TileCoord =
   var playerLoc = this.player.getLocation()

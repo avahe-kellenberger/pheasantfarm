@@ -153,6 +153,7 @@ proc newSummary*(goToShop: proc()): Summary =
   result.shopLabel = newText(font, "Shop", WHITE, FILTER_NEAREST)
   result.shopLabel.textAlignHorizontal = TextAlignment.Center
   result.shopLabel.textAlignVertical = TextAlignment.Center
+  result.shopLabel.processInputEvents = false
   shopButton.addChild(result.shopLabel)
 
 proc setEggCount*(this: Summary, eggCount: CountTable[EggKind]) =

@@ -11,10 +11,10 @@ type Overlay* = ref object of UIComponent
   animationPlayer*: AnimationPlayer
 
 proc setDay*(this: Overlay, day: int)
-proc createFadeOutAnimation(this: Overlay): Animation
+proc createFadeOutAnimation(this: Overlay, fadeTime: float): Animation
 proc createFadeInAnimation(this: Overlay): Animation
 
-proc newOverlay*(onFadeOutFinished: proc(), onFadeInFinished: proc()): Overlay =
+proc newOverlay*(fadeTime: float, onFadeOutFinished: proc(), onFadeInFinished: proc()): Overlay =
   result = Overlay()
   initUIComponent(UIComponent result)
 
@@ -26,8 +26,9 @@ proc newOverlay*(onFadeOutFinished: proc(), onFadeInFinished: proc()): Overlay =
   result.animationPlayer = newAnimationPlayer()
 
   let this = result
+  this.processInputEvents = false
 
-  let fadeOutAnim = result.createFadeOutAnimation()
+  let fadeOutAnim = result.createFadeOutAnimation(fadeTime)
   fadeOutAnim.onFinished:
     onFadeOutFinished()
   result.animationPlayer.addAnimation("fade-out", fadeOutAnim)
@@ -38,8 +39,8 @@ proc newOverlay*(onFadeOutFinished: proc(), onFadeInFinished: proc()): Overlay =
     this.visible = false
   result.animationPlayer.addAnimation("fade-in", fadeInAnim)
 
-proc createFadeOutAnimation(this: Overlay): Animation =
-  let anim = newAnimation(15, false)
+proc createFadeOutAnimation(this: Overlay, fadeTime: float): Animation =
+  let anim = newAnimation(fadeTime, false)
 
   var
     startingColor = orangeColor
