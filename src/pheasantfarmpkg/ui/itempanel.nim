@@ -30,7 +30,7 @@ proc newItemPanel*(): ItemPanel =
   multiplySprite = newSprite(Images.loadImage("./assets/multiply.png", FILTER_NEAREST).image)
 
   let
-    instructionsFont = Fonts.load("./assets/fonts/kennypixel.ttf", 32).font
+    instructionsFont = Fonts.load("./assets/fonts/mozart.ttf", 32).font
     pheasantSprite = newSprite(
       Images.loadImage("./assets/common_pheasant.png", FILTER_NEAREST).image,
       4,
