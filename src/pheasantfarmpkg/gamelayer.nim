@@ -18,7 +18,7 @@ import tags as tagsModule
 
 const
   numStartingPheasants = 10 # 10_000
-  dayLengthInSeconds = 15 # 30
+  dayLengthInSeconds = 30
   startingMoney = 50
   startingPheedCount = 0 # numStartingPheasants * 2
   startingWaterCount = 0 # numStartingPheasants * 2
@@ -577,7 +577,7 @@ proc placeNest(this: GameLayer, tile: TileCoord) =
     this.checkNestAndEggCollisions(nest, tile)
 
 method update*(this: GameLayer, deltaTime: float) =
-  if this.isTimeCountingDown or not hasGameStarted:
+  if this.timeRemaining >= 0 or not hasGameStarted:
     # Make the camera snap to pixels to prevent shaking effect).
     let cameraLoc = Game.scene.camera.getLocation()
     Game.scene.camera.setLocation(ceil cameraLoc.x, ceil cameraLoc.y)
@@ -590,7 +590,7 @@ method update*(this: GameLayer, deltaTime: float) =
   this.overlay.update(deltaTime)
 
 method render*(this: GameLayer, ctx: Target, offsetX: float = 0, offsetY: float = 0) =
-  if hasGameStarted and not this.isTimeCountingDown:
+  if hasGameStarted and this.timeRemaining <= 0:
     return
 
   when defined(debug):
@@ -605,3 +605,4 @@ method render*(this: GameLayer, ctx: Target, offsetX: float = 0, offsetY: float 
     this.grid.highlightTile(ctx, this.invalidTile, offsetX, offsetY, RED, forceColor = true)
 
   procCall Layer(this).render(ctx, offsetX, offsetY)
+

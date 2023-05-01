@@ -119,27 +119,38 @@ proc newSummary*(goToShop: proc()): Summary =
 
     taxLabelContainer.addChild(ipsBuildingIcon)
     taxLabelContainer.addChild(taxLabel)
-    # taxLabelContainer.margin = margin(0, 0, 0, 12)
 
     container.margin = margin(0, 0, 0, 12)
     container.addChild(taxLabelContainer)
 
-    # TODO: The following 3 components are conditional upon the tax day.
+    # NOTE: The following 3 components are conditional upon the tax day.
+    let taxPriceContainer = newUIComponent()
+    taxPriceContainer.stackDirection = StackDirection.Horizontal
+    taxPriceContainer.alignVertical = Alignment.Center
+    taxPriceContainer.alignHorizontal = Alignment.Center
 
     result.taxMoneyImage = newUIImage("./assets/money.png", FILTER_NEAREST)
     result.taxMoneyImage.scale = vector(2.8, 2.8)
-    result.taxMoneyImage.margin = margin(0, 12, 0, 0)
-    # container.addChild(result.taxMoneyImage)
+    result.taxMoneyImage.margin = margin(0, 12, 12, 0)
+    result.taxMoneyImage.enabled = false
+    result.taxMoneyImage.visible = false
+    taxPriceContainer.addChild(result.taxMoneyImage)
 
     const taxColor = newColor(160, 20, 20)
     result.taxPriceLabel = newText(font, "0000", taxColor, FILTER_NEAREST)
     result.taxPriceLabel.textAlignHorizontal = TextAlignment.Center
     result.taxPriceLabel.textAlignVertical = TextAlignment.Center
-    # bgImage.addChild(result.taxPriceLabel)
+    result.taxPriceLabel.enabled = false
+    result.taxPriceLabel.visible = false
+    taxPriceContainer.addChild(result.taxPriceLabel)
+
+    container.addChild(taxPriceContainer)
 
     result.daysTillTaxLabel = newText(font, "", taxColor, FILTER_NEAREST)
     result.daysTillTaxLabel.textAlignHorizontal = TextAlignment.Center
     result.daysTillTaxLabel.textAlignVertical = TextAlignment.Center
+    result.daysTillTaxLabel.enabled = false
+    result.daysTillTaxLabel.visible = false
     container.addChild(result.daysTillTaxLabel)
 
     bgImage.addChild(container)
@@ -164,7 +175,7 @@ proc setTotal*(this: Summary, total: int) =
   this.totalLabel.text = "Total: " & $total
 
 proc setTaxPrice*(this: Summary, tax: int) =
-  this.taxPriceLabel.text = "-" & formatInt(tax, 6)
+  this.taxPriceLabel.text = "-" & $tax
 
 proc updateDaysTillTax*(this: Summary, currentDay, taxDayFrequency: int) =
   let
@@ -172,17 +183,17 @@ proc updateDaysTillTax*(this: Summary, currentDay, taxDayFrequency: int) =
     daysTill = taxDayFrequency - dayMod
 
   if dayMod != 0:
-    this.daysTillTaxLabel.visible = true
+    this.daysTillTaxLabel.enableAndSetVisible()
     if daysTill == 1:
       this.daysTillTaxLabel.text = $daysTill & " day left"
     else:
       this.daysTillTaxLabel.text = $daysTill & " days left"
-    this.taxMoneyImage.visible = false
-    this.taxPriceLabel.visible = false
+    this.taxMoneyImage.disableAndHide()
+    this.taxPriceLabel.disableAndHide()
   else:
-    this.daysTillTaxLabel.visible = false
-    this.taxMoneyImage.visible = true
-    this.taxPriceLabel.visible = true
+    this.daysTillTaxLabel.disableAndHide()
+    this.taxMoneyImage.enableAndSetVisible()
+    this.taxPriceLabel.enableAndSetVisible()
 
 proc setOutOfFunds*(this: Summary) =
   this.shopLabel.text = "Next"
