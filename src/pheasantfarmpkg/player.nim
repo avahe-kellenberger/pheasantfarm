@@ -179,7 +179,7 @@ proc updateDirection*(this: Player) =
   if dir == IVECTOR_ZERO:
     this.velocity = VECTOR_ZERO
   else:
-    this.velocity = dir.normalize() * speed
+    this.velocity = dir.normalize(speed)
     this.direction = dir
 
   this.updateAnimation()

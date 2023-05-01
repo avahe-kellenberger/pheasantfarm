@@ -208,8 +208,8 @@ proc newGameLayer*(grid: Grid): GameLayer =
   result.colliders = initHashSet[PhysicsBody]()
 
   let camera = newCamera()
-  camera.z = 0.85
-  camera.setLocation(grid.bounds.center)
+  camera.z = 0.79
+  camera.setLocation(vector(grid.bounds.center.x, grid.bounds.center.y - 16.0))
   Game.scene.camera = camera
 
   when defined(debug):
@@ -217,6 +217,7 @@ proc newGameLayer*(grid: Grid): GameLayer =
       MOUSEWHEEL,
       proc(e: Event): bool =
         camera.z += float(e.wheel.y) * 0.03
+        echo camera.z
     )
 
   # Create player
@@ -224,10 +225,6 @@ proc newGameLayer*(grid: Grid): GameLayer =
   result.player.setLocation(grid.bounds.center)
   result.addChild(result.player)
   result.bodies.add(result.player)
-
-  camera.setTrackedNode(result.player)
-  camera.setTrackingEasingFunction(easeOutQuadratic)
-  camera.completionRatioPerFrame = 0.03
 
   result.eggCount = initCountTable[EggKind]()
 
@@ -318,6 +315,8 @@ template isTaxDay(this: GameLayer): bool =
   this.day mod taxDayFrequency == 0
 
 proc clearEggsAndNests(this: GameLayer) =
+  # TODO: This is super slow because Layer uses a SafeSet.
+  # Hopefully can optimise this.
   for child in this.childIterator:
     if child of Egg or child of Nest:
       this.removeChild(child)
@@ -577,11 +576,7 @@ proc placeNest(this: GameLayer, tile: TileCoord) =
     this.checkNestAndEggCollisions(nest, tile)
 
 method update*(this: GameLayer, deltaTime: float) =
-  if this.timeRemaining >= 0 or not hasGameStarted:
-    # Make the camera snap to pixels to prevent shaking effect).
-    let cameraLoc = Game.scene.camera.getLocation()
-    Game.scene.camera.setLocation(ceil cameraLoc.x, ceil cameraLoc.y)
-
+  if this.timeRemaining > 0 or not hasGameStarted:
     procCall Layer(this).update(deltaTime)
     this.checkCollisions()
     this.updateTimer(deltaTime)
