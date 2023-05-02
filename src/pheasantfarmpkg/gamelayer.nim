@@ -1,6 +1,7 @@
 import std/[sequtils, algorithm, sets, random, tables]
 
 import shade
+import constants
 
 import egg as eggModule
 import nest as nestModule
@@ -208,8 +209,8 @@ proc newGameLayer*(grid: Grid): GameLayer =
   result.colliders = initHashSet[PhysicsBody]()
 
   let camera = newCamera()
-  camera.z = 0.79
-  camera.setLocation(vector(grid.bounds.center.x, grid.bounds.center.y - 16.0))
+  camera.z = 0.79 - (0.125 * RENDER_SCALAR)
+  camera.setLocation(vector(grid.bounds.center.x, grid.bounds.center.y - 16.0 * RENDER_SCALAR))
   Game.scene.camera = camera
 
   when defined(debug):
@@ -225,6 +226,10 @@ proc newGameLayer*(grid: Grid): GameLayer =
   result.player.setLocation(grid.bounds.center)
   result.addChild(result.player)
   result.bodies.add(result.player)
+
+  camera.setTrackedNode(result.player)
+  camera.setTrackingEasingFunction(easeOutQuadratic)
+  camera.completionRatioPerFrame = 0.02
 
   result.eggCount = initCountTable[EggKind]()
 

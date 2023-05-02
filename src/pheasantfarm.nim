@@ -1,7 +1,7 @@
 import std/random
 import shade
 
-import pheasantfarmpkg/[fences, gamelayer]
+import pheasantfarmpkg/[fences, gamelayer, constants]
 import pheasantfarmpkg/ui/startmenu as startMenuModule
 import pheasantfarmpkg/grid as gridModule
 
@@ -21,7 +21,7 @@ when isMainModule:
   Game.setUIRoot(root)
   root.stackDirection = Overlap
 
-  let grid = newGrid(20, 13, 16)
+  let grid = newGrid(20, 13, 16 * RENDER_SCALAR)
   let layer = newGameLayer(grid)
   Game.scene.addLayer(layer)
 

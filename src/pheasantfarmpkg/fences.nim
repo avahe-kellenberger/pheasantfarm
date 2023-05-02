@@ -1,6 +1,5 @@
 import shade
-import grid
-import tags
+import grid, tags, constants
 
 var fenceImageId: int = -1
 
@@ -23,14 +22,15 @@ proc newFence(alignment: FenceAlignment, lengthInTiles: int): Fence =
     fenceImageId = id
 
   let sprite = newSprite(Images[fenceImageId], 7, 1)
+  sprite.scale = vector(RENDER_SCALAR, RENDER_SCALAR)
 
   # Create collision shape based on orientation.
   var shape =
     case alignment:
       of TOP, BOTTOM:
         let
-          size = vector(sprite.size.x * lengthInTiles, sprite.size.y)
-          halfSpriteSize = sprite.size * 0.5
+          size = vector(sprite.size.x * lengthInTiles, sprite.size.y) * RENDER_SCALAR
+          halfSpriteSize = sprite.size * 0.5 * RENDER_SCALAR
 
         newCollisionShape(
           aabb(-halfSpriteSize.x, -halfSpriteSize.y, size.x - halfSpriteSize.x, size.y - halfSpriteSize.y)
@@ -38,8 +38,8 @@ proc newFence(alignment: FenceAlignment, lengthInTiles: int): Fence =
 
       of LEFT, RIGHT:
         let
-          size = vector(sprite.size.x, sprite.size.y * lengthInTiles)
-          halfSpriteSize = sprite.size * 0.5
+          size = vector(sprite.size.x, sprite.size.y * lengthInTiles) * RENDER_SCALAR
+          halfSpriteSize = sprite.size * 0.5 * RENDER_SCALAR
 
         newCollisionShape(
           aabb(-halfSpriteSize.x, -halfSpriteSize.y, size.x - halfSpriteSize.x, size.y - halfSpriteSize.y)
@@ -87,7 +87,7 @@ template renderHorizontal(this: Fence, ctx: Target, offsetX: float = 0, offsetY:
   for x in 0..<this.lengthInTiles:
     this.sprite.render(
       ctx,
-      this.x + x * this.sprite.size.x + offsetX,
+      this.x + x * (this.sprite.size.x * RENDER_SCALAR) + offsetX,
       this.y + offsetY
     )
 
@@ -102,7 +102,7 @@ template renderLeft(this: Fence, ctx: Target, offsetX: float = 0, offsetY: float
     if y == this.lengthInTiles - 1:
       # Bottom on fence
       this.sprite.frameCoords = ivector(3, 0)
-    this.sprite.render(ctx, this.x + offsetX, this.y + y * this.sprite.size.y + offsetY)
+    this.sprite.render(ctx, this.x + offsetX, this.y + y * (this.sprite.size.y * RENDER_SCALAR) + offsetY)
 
 template renderRight(this: Fence, ctx: Target, offsetX: float = 0, offsetY: float = 0) =
   # Top of fence
@@ -115,7 +115,7 @@ template renderRight(this: Fence, ctx: Target, offsetX: float = 0, offsetY: floa
     if y == this.lengthInTiles - 1:
       # Bottom on fence
       this.sprite.frameCoords = ivector(6, 0)
-    this.sprite.render(ctx, this.x + offsetX, this.y + y * this.sprite.size.y + offsetY)
+    this.sprite.render(ctx, this.x + offsetX, this.y + y * (this.sprite.size.y * RENDER_SCALAR) + offsetY)
 
 Fence.renderAsChildOf(PhysicsBody):
   case this.alignment:
