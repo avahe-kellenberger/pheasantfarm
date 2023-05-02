@@ -100,8 +100,7 @@ proc `innerFenceArea=`*(this: GameLayer, aabb: AABB) =
   )
 
 proc playMusic(fadeInTime: float = 0.0) =
-  discard
-  # fadeInMusic(song, fadeInTime, 0.25)
+  fadeInMusic(song, fadeInTime, 0.25)
 
 proc isBlocking(body: PhysicsBody): bool =
   return not (body of Egg)

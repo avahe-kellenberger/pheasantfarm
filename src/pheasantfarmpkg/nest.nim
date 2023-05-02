@@ -1,6 +1,7 @@
 import shade
 
 import std/tables
+import constants
 
 import egg as eggModule
 
@@ -22,9 +23,9 @@ proc newNest*(eggKind: EggKind): Nest =
   initPhysicsBody(PhysicsBody(result), shape, {LayerObjectFlags.RENDER})
   result.sprite = newSprite(getNestImage(), 4, 1)
   result.sprite.frameCoords.x = ord(eggKind)
+  result.sprite.scale = vector(RENDER_SCALAR, RENDER_SCALAR)
   result.sprite.offset.y = -result.sprite.size.y * 0.5
   result.eggKind = eggKind
-
 
 Nest.renderAsChildOf(PhysicsBody):
   this.sprite.render(ctx, this.x + offsetX, this.y + offsetY)
