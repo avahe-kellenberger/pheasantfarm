@@ -42,7 +42,7 @@ task deploy_windows, "Deploys a production release of the game for Windows":
 
 task deploy, "Deploys a production release of the game":
   when defined(linux):
-    deploy(".so")
+    deploy_linuxTask()
   else:
-    deploy(".dll", "-d:mingw")
+    deploy_windowsTask()
 
