@@ -1,4 +1,4 @@
-import std/os
+import std/[os, strformat]
 
 # Package
 version = "0.1.0"
@@ -26,15 +26,23 @@ task rund, "Runs the game in debug mode":
 task runprof, "Runs the game with profiling":
   exec "nim r -d:release --profiler:on --stacktrace:on src/pheasantfarm.nim"
 
-task deploy, "Deploys a production release of the game":
-  exec "nim c --app:gui -d:release --outdir:dist/pheasantfarm src/pheasantfarm.nim"
+proc deploy(sharedLibExt: string, extraBuildFlags: string = "") =
+  exec fmt"nim c {extraBuildFlags} --app:gui -d:release --outdir:dist/pheasantfarm src/pheasantfarm.nim"
   cpDir("assets", "dist/pheasantfarm/assets")
-  let sharedLibExt =
-    when defined(linux):
-      ".so"
-    else:
-      ".dll"
   for sharedLibFile in listFiles(".usr/lib"):
     if sharedLibFile.endsWith(sharedLibExt):
       let filename = extractFilename(sharedLibFile)
       cpFile(sharedLibFile, "dist/pheasantfarm/" & filename)
+
+task deploy_linux, "Deploys a production release of the game for Windows":
+  deploy(".so")
+
+task deploy_windows, "Deploys a production release of the game for Windows":
+  deploy(".dll", "-d:mingw")
+
+task deploy, "Deploys a production release of the game":
+  when defined(linux):
+    deploy(".so")
+  else:
+    deploy(".dll", "-d:mingw")
+
