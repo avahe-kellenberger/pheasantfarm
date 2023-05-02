@@ -1,6 +1,7 @@
 import std/[sequtils, algorithm, sets, random, tables]
 
 import shade
+import constants
 
 import egg as eggModule
 import nest as nestModule
@@ -24,6 +25,7 @@ const
   startingWaterCount = 0 # numStartingPheasants * 2
   startingNestCount = 0 # 2
   taxDayFrequency = 4
+  fadeAnimationTime = 15.0
 
 var
   hasGameStarted = false
@@ -98,7 +100,8 @@ proc `innerFenceArea=`*(this: GameLayer, aabb: AABB) =
   )
 
 proc playMusic(fadeInTime: float = 0.0) =
-  fadeInMusic(song, fadeInTime, 0.25)
+  discard
+  # fadeInMusic(song, fadeInTime, 0.25)
 
 proc isBlocking(body: PhysicsBody): bool =
   return not (body of Egg)
@@ -139,50 +142,52 @@ proc newGameLayer*(grid: Grid): GameLayer =
   invalidTileAnimation.addNewAnimationTrack(this.shouldHighlightInvalidTile, animCoordFrames)
   this.animPlayer.addAnimation("invalid-tile", invalidTileAnimation)
 
+  let root = Game.getUIRoot()
+  root.alignVertical = Alignment.Center
+  root.alignHorizontal = Alignment.Center
+  root.stackDirection = Overlap
+
   result.overlay = newOverlay(
+    fadeAnimationTime,
     proc () = this.openSummary,
     proc () = this.startNewDay
   )
-  result.overlay.size = gamestate.resolution
-  result.overlay.visible = false
-  this.overlay.setLocation(
-    getLocationInParent(this.overlay.position, gamestate.resolution) +
-    gamestate.resolution * 0.5
-  )
 
-  Game.hud.addChild(result.overlay)
+  result.overlay.visible = false
+
+  root.addChild(result.overlay)
+
+  let hudContainer = newUIComponent()
+  hudContainer.alignHorizontal = Alignment.Center
+  hudContainer.processInputEvents = false
 
   result.hud = newHUD()
   result.hud.setTimeRemaining(0)
   result.hud.setMoney(result.money)
   result.hud.visible = false
-  result.hud.setLocation(
-    getLocationInParent(result.hud.position, gamestate.resolution) +
-    vector(gamestate.resolution.x * 0.5, gamestate.resolution.y * 0.05)
-  )
-  Game.hud.addChild(result.hud)
+
+  hudContainer.addChild(result.hud)
+  root.addChild(hudContainer)
+
+  let itemPanelContainer = newUIComponent()
+  itemPanelContainer.alignVertical = Alignment.Center
+  itemPanelContainer.processInputEvents = false
 
   result.itemPanel = newItemPanel()
   result.itemPanel.setPheedCount(result.pheedCount)
   result.itemPanel.setWaterCount(result.waterCount)
   result.itemPanel.setNestCount(result.nestCount)
   result.itemPanel.visible = false
-  result.itemPanel.setLocation(
-    getLocationInParent(result.itemPanel.position, gamestate.resolution) +
-    vector(result.itemPanel.size.x * 0.5, gamestate.resolution.y * 0.5)
-  )
-  Game.hud.addChild(result.itemPanel)
+
+  itemPanelContainer.addChild(result.itemPanel)
+  root.addChild(itemPanelContainer)
 
   result.shop = newShop(
     (proc(item: Item, qty: int) = this.tryPurchase(item, qty)),
     (proc() = this.loadNewDay())
   )
   result.shop.visible = false
-  result.shop.setLocation(
-    getLocationInParent(this.shop.position, gamestate.resolution) +
-    vector(gamestate.resolution.x * 0.5, gamestate.resolution.y * 0.35)
-  )
-  Game.hud.addChild(result.shop)
+  root.addChild(result.shop)
 
   result.summary = newSummary(
     proc() =
@@ -192,61 +197,20 @@ proc newGameLayer*(grid: Grid): GameLayer =
         this.openShop()
   )
   result.summary.visible = false
-  result.summary.setLocation(
-    getLocationInParent(this.summary.position, gamestate.resolution) +
-    vector(gamestate.resolution.x * 0.5, gamestate.resolution.y * 0.45)
-  )
-  Game.hud.addChild(result.summary)
+  root.addChild(result.summary)
 
   result.gameOverScreen = newGameOverScreen()
   result.gameOverScreen.visible = false
-  result.gameOverScreen.setLocation(
-    getLocationInParent(result.gameOverScreen.position, gamestate.resolution) +
-    vector(gamestate.resolution.x * 0.5, gamestate.resolution.y * 0.45)
-  )
-  result.gameOverScreen.size = gamestate.resolution
-  Game.hud.addChild(result.gameOverScreen)
 
-  gamestate.onResolutionChanged:
-    this.hud.setLocation(
-      getLocationInParent(this.hud.position, gamestate.resolution) +
-      vector(gamestate.resolution.x * 0.5, gamestate.resolution.y * 0.05)
-    )
-
-    this.itemPanel.setLocation(
-      getLocationInParent(this.itemPanel.position, gamestate.resolution) +
-      vector(this.itemPanel.size.x * 0.5, gamestate.resolution.y * 0.5)
-    )
-
-    this.overlay.setLocation(
-      getLocationInParent(this.overlay.position, gamestate.resolution) +
-      gamestate.resolution * 0.5
-    )
-    this.overlay.size = gamestate.resolution
-
-    this.shop.setLocation(
-      getLocationInParent(this.shop.position, gamestate.resolution) +
-      vector(gamestate.resolution.x * 0.5, gamestate.resolution.y * 0.35)
-    )
-
-    this.summary.setLocation(
-      getLocationInParent(this.summary.position, gamestate.resolution) +
-      vector(gamestate.resolution.x * 0.5, gamestate.resolution.y * 0.45)
-    )
-
-    this.gameOverScreen.setLocation(
-      getLocationInParent(this.gameOverScreen.position, gamestate.resolution) +
-      vector(gamestate.resolution.x * 0.5, gamestate.resolution.y * 0.45)
-    )
-    this.gameOverScreen.size = gamestate.resolution
+  root.addChild(result.gameOverScreen)
 
   result.bodies = newSafeset[PhysicsBody]()
   result.grid = grid
   result.colliders = initHashSet[PhysicsBody]()
 
   let camera = newCamera()
-  camera.z = 0.85
-  camera.setLocation(grid.bounds.center)
+  camera.z = 0.79 - (0.125 * RENDER_SCALAR)
+  camera.setLocation(vector(grid.bounds.center.x, grid.bounds.center.y - 16.0 * RENDER_SCALAR))
   Game.scene.camera = camera
 
   when defined(debug):
@@ -254,6 +218,7 @@ proc newGameLayer*(grid: Grid): GameLayer =
       MOUSEWHEEL,
       proc(e: Event): bool =
         camera.z += float(e.wheel.y) * 0.03
+        echo camera.z
     )
 
   # Create player
@@ -264,7 +229,7 @@ proc newGameLayer*(grid: Grid): GameLayer =
 
   camera.setTrackedNode(result.player)
   camera.setTrackingEasingFunction(easeOutQuadratic)
-  camera.completionRatioPerFrame = 0.03
+  camera.completionRatioPerFrame = 0.02
 
   result.eggCount = initCountTable[EggKind]()
 
@@ -355,6 +320,8 @@ template isTaxDay(this: GameLayer): bool =
   this.day mod taxDayFrequency == 0
 
 proc clearEggsAndNests(this: GameLayer) =
+  # TODO: This is super slow because Layer uses a SafeSet.
+  # Hopefully can optimise this.
   for child in this.childIterator:
     if child of Egg or child of Nest:
       this.removeChild(child)
@@ -564,10 +531,10 @@ proc updateTimer(this: GameLayer, deltaTime: float) =
     if oldTimeInSeconds != newTimeInSeconds:
       this.onSecondCountdown(newTimeInSeconds)
 
-    if not this.overlay.visible and this.timeRemaining <= 14.5:
+    if not this.overlay.visible and this.timeRemaining <= fadeAnimationTime - 0.5:
       this.overlay.visible = true
       this.overlay.animationPlayer.play("fade-out")
-      this.overlay.animationPlayer.update(15 - this.timeRemaining)
+      this.overlay.animationPlayer.update(fadeAnimationTime - this.timeRemaining)
 
 proc getTilePlayerIsFacing(this: GameLayer): TileCoord =
   var playerLoc = this.player.getLocation()
@@ -613,13 +580,9 @@ proc placeNest(this: GameLayer, tile: TileCoord) =
 
     this.checkNestAndEggCollisions(nest, tile)
 
-method update*(this: GameLayer, deltaTime: float, onChildUpdate: proc(child: Node) = nil) =
-  if this.isTimeCountingDown or not hasGameStarted:
-    # Make the camera snap to pixels to prevent shaking effect).
-    let cameraLoc = Game.scene.camera.getLocation()
-    Game.scene.camera.setLocation(ceil cameraLoc.x, ceil cameraLoc.y)
-
-    procCall Layer(this).update(deltaTime, onChildUpdate)
+method update*(this: GameLayer, deltaTime: float) =
+  if this.timeRemaining > 0 or not hasGameStarted:
+    procCall Layer(this).update(deltaTime)
     this.checkCollisions()
     this.updateTimer(deltaTime)
     this.animPlayer.update(deltaTime)
@@ -627,7 +590,7 @@ method update*(this: GameLayer, deltaTime: float, onChildUpdate: proc(child: Nod
   this.overlay.update(deltaTime)
 
 method render*(this: GameLayer, ctx: Target, offsetX: float = 0, offsetY: float = 0) =
-  if hasGameStarted and not this.isTimeCountingDown:
+  if hasGameStarted and this.timeRemaining <= 0:
     return
 
   when defined(debug):
@@ -642,3 +605,4 @@ method render*(this: GameLayer, ctx: Target, offsetX: float = 0, offsetY: float 
     this.grid.highlightTile(ctx, this.invalidTile, offsetX, offsetY, RED, forceColor = true)
 
   procCall Layer(this).render(ctx, offsetX, offsetY)
+

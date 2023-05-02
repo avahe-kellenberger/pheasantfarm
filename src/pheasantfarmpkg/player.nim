@@ -1,8 +1,8 @@
 import shade
-
 import std/[tables, sugar, strutils]
+import constants
 
-const speed = 96.0
+const speed = 96.0 * RENDER_SCALAR
 
 type
   PlayerAction {.pure.} = enum
@@ -92,7 +92,7 @@ proc createPlayerAnimation(
   anim.addNewAnimationTrack(this.sprite.frameCoords, animCoordFrames)
 
   let scaleFrame: seq[KeyFrame[Vector]] = @[(
-    vector(if flip: -1.5 else: 1.5, this.sprite.scale.y),
+    vector(if flip: -this.sprite.scale.x else: this.sprite.scale.x, this.sprite.scale.y),
     0.0
   )]
   anim.addNewAnimationTrack(this.sprite.scale, scaleFrame)
@@ -179,7 +179,7 @@ proc updateDirection*(this: Player) =
   if dir == IVECTOR_ZERO:
     this.velocity = VECTOR_ZERO
   else:
-    this.velocity = dir.normalize() * speed
+    this.velocity = dir.normalize(speed)
     this.direction = dir
 
   this.updateAnimation()
@@ -208,7 +208,7 @@ proc setupInputListeners(this: Player) =
 proc newPlayer*(): Player =
   result = Player()
 
-  let scale = vector(1.5, 1.5)
+  let scale = vector(1.5, 1.5) * RENDER_SCALAR
   var shape = createCollisionShape(scale)
 
   initPhysicsBody(PhysicsBody(result), shape)

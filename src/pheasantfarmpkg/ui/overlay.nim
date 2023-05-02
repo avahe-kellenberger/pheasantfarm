@@ -1,36 +1,37 @@
 import shade
 
-import strformat
-
-import panel, ui, label, format
-export ui, label
+import format, fontloader
 
 const orangeColor = newColor(179, 89, 0)
 
-type Overlay* = ref object of Panel
-  dayLabel*: Label
+type Overlay* = ref object of UIComponent
+  dayLabel*: UITextComponent
   currentColor: Color
   startedFadeToBlack: bool
   animationPlayer*: AnimationPlayer
 
 proc setDay*(this: Overlay, day: int)
-proc createFadeOutAnimation(this: Overlay): Animation
+proc createFadeOutAnimation(this: Overlay, fadeTime: float): Animation
 proc createFadeInAnimation(this: Overlay): Animation
 
-proc newOverlay*(onFadeOutFinished: proc(), onFadeInFinished: proc()): Overlay =
+proc newOverlay*(fadeTime: float, onFadeOutFinished: proc(), onFadeInFinished: proc()): Overlay =
   result = Overlay()
-  initPanel(Panel(result))
+  initUIComponent(UIComponent result)
+  result.alignVertical = Alignment.Center
+  result.alignHorizontal = Alignment.Center
 
   result.currentColor = newColor(0, 0, 0, 0)
-  result.dayLabel = newLabel("01", WHITE)
+  result.dayLabel = newText(getFont(), "01", WHITE)
   result.dayLabel.visible = false
-  result.add(result.dayLabel)
+  result.addChild(result.dayLabel)
+  result.dayLabel.determineWidthAndHeight()
 
   result.animationPlayer = newAnimationPlayer()
 
   let this = result
+  this.processInputEvents = false
 
-  let fadeOutAnim = result.createFadeOutAnimation()
+  let fadeOutAnim = result.createFadeOutAnimation(fadeTime)
   fadeOutAnim.onFinished:
     onFadeOutFinished()
   result.animationPlayer.addAnimation("fade-out", fadeOutAnim)
@@ -41,8 +42,8 @@ proc newOverlay*(onFadeOutFinished: proc(), onFadeInFinished: proc()): Overlay =
     this.visible = false
   result.animationPlayer.addAnimation("fade-in", fadeInAnim)
 
-proc createFadeOutAnimation(this: Overlay): Animation =
-  let anim = newAnimation(15, false)
+proc createFadeOutAnimation(this: Overlay, fadeTime: float): Animation =
+  let anim = newAnimation(fadeTime, false)
 
   var
     startingColor = orangeColor
@@ -80,30 +81,29 @@ proc createFadeInAnimation(this: Overlay): Animation =
       (endColor, anim.duration)
     ]
 
-    visibilityFrames: seq[KeyFrame[bool]] = @[
+    textVisibilityFrames: seq[KeyFrame[bool]] = @[
       (true, 0.0),
       (false, 2.0)
     ]
 
   anim.addNewAnimationTrack(this.currentColor, frames)
-  anim.addNewAnimationTrack(this.dayLabel.visible, visibilityFrames)
+  anim.addNewAnimationTrack(this.dayLabel.visible, textVisibilityFrames)
   return anim
 
 proc setDay*(this: Overlay, day: int) =
-  this.dayLabel.setText("Day " & formatInt(day, 2))
+  this.dayLabel.text = "Day " & $day
 
 proc update*(this: Overlay, deltaTime: float) =
   this.animationPlayer.update(deltaTime)
 
-method render*(this: Overlay, ctx: Target, offsetX: float = 0, offsetY: float = 0) =
-  if this.visible:
-    ctx.rectangleFilled(
-      -1,
-      -1,
-      this.size.x + 1,
-      this.size.y + 1,
-      this.currentColor
-    )
+method preRender*(this: Overlay, ctx: Target, clippedRenderBounds: AABB) =
+  ctx.rectangleFilled(
+    0,
+    0,
+    this.bounds.width,
+    this.bounds.height,
+    this.currentColor
+  )
 
-    procCall Panel(this).render(ctx, offsetX, offsetY)
+  procCall UIComponent(this).preRender(ctx, clippedRenderBounds)
 

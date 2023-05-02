@@ -1,5 +1,6 @@
 import std/random
 import shade
+import constants
 
 var grassImage: Image = nil
 
@@ -15,6 +16,7 @@ proc newGrass*(): Grass =
     grassImage = img
 
   result.sprite = newSprite(grassImage, 6, 2)
+  result.sprite.scale = vector(RENDER_SCALAR, RENDER_SCALAR)
   result.sprite.frameCoords.x = rand(5)
   result.sprite.frameCoords.y =
     if rand(10) > 8:

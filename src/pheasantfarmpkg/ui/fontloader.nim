@@ -6,7 +6,7 @@ var
 
 proc getFontIndex*(): int =
   if fontIndex == -1:
-    let (i, font) = Fonts.load("./assets/fonts/kennypixel.ttf", 72)
+    let (i, font) = Fonts.load("./assets/fonts/mozart.ttf", 64)
     fontIndex = i
   return fontIndex
 

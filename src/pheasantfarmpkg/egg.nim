@@ -1,6 +1,6 @@
 import shade
-
 import std/tables
+import constants
 
 var eggImageId = -1
 
@@ -40,7 +40,7 @@ proc newEgg*(eggKind: EggKind = EggKind.WHITE): Egg =
   result.eggKind = eggKind
   result.sprite = sprite
   result.sprite.frameCoords.x = ord(eggKind)
-  result.sprite.scale = vector(0.75, 0.75)
+  result.sprite.scale = vector(0.75, 0.75) * RENDER_SCALAR
 
 
 proc calcTotal*(eggCount: CountTable[EggKind]): int =

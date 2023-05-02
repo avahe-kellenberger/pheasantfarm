@@ -1,9 +1,8 @@
 import std/random
 import shade
 
-import pheasantfarmpkg/[fences, gamelayer]
+import pheasantfarmpkg/[fences, gamelayer, constants]
 import pheasantfarmpkg/ui/startmenu as startMenuModule
-import pheasantfarmpkg/player as playerModule
 import pheasantfarmpkg/grid as gridModule
 
 randomize()
@@ -18,9 +17,11 @@ when isMainModule:
     iconFilename = "./assets/icon.png"
   )
 
-  Game.hud = newLayer()
+  let root = newUIComponent()
+  Game.setUIRoot(root)
+  root.stackDirection = Overlap
 
-  let grid = newGrid(20, 13, 16)
+  let grid = newGrid(20, 13, 16 * RENDER_SCALAR)
   let layer = newGameLayer(grid)
   Game.scene.addLayer(layer)
 
@@ -30,24 +31,13 @@ when isMainModule:
 
   # Set up the start menu
   let startMenu = newStartMenu()
-  Game.hud.addChild(startMenu)
-  startMenu.size = gamestate.resolution
-  startMenu.setLocation(
-    getLocationInParent(startMenu.position, gamestate.resolution) + gamestate.resolution * 0.5
-  )
-
-  # Center the menu if the screen size changes.
-  gamestate.onResolutionChanged:
-    startMenu.size = gamestate.resolution
-    startMenu.setLocation(
-      getLocationInParent(startMenu.position, gamestate.resolution) + gamestate.resolution * 0.5
-    )
+  root.addChild(startMenu)
 
   let menuClickSound = loadSoundEffect("./assets/sfx/menu-click.wav")
 
-  startMenu.startButton.onClick:
+  startMenu.startButton.onPressed:
     menuClickSound.play()
-    Game.hud.removeChild(startMenu)
+    root.removeChild(startMenu)
     startMenu.visible = false
 
     # Add in-game HUD
@@ -56,7 +46,7 @@ when isMainModule:
 
     layer.startNewDay()
 
-  startMenu.quitButton.onClick:
+  startMenu.quitButton.onPressed:
     Game.stop()
 
   Input.addKeyPressedListener(

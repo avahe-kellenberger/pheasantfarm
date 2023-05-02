@@ -1,31 +1,36 @@
 import shade
 
-import panel, ui, button, label
-export ui, button, label
-
 type
-  StartMenu* = ref object of Panel
-    startButton*: Button
-    quitButton*: Button
+  StartMenu* = ref object of UIComponent
+    startButton*: UIImage
+    quitButton*: UIImage
 
 proc newStartMenu*(): StartMenu =
   result = StartMenu()
-  initPanel(Panel(result))
+  initUIComponent(UIComponent result)
 
-  let title = newButton("./assets/title.png")
-  title.position.y = -0.60
-  result.add(title)
+  result.stackDirection = StackDirection.Vertical
+  result.alignHorizontal = Alignment.Center
+  result.alignVertical = Alignment.Start
 
-  let phrenzy = newButton("./assets/phrenzy.png")
-  phrenzy.position.y = -0.35
-  result.add(phrenzy)
+  let spacer = newUIComponent()
+  spacer.height = ratio(0.15)
+  result.addChild(spacer)
 
-  result.startButton = newButton("./assets/start.png")
-  result.startButton.position.y = -0.10
+  let title = newUIImage("./assets/title.png")
+  title.margin = 30.0
+  result.addChild(title)
 
-  result.quitButton = newButton("./assets/quit.png")
-  result.quitButton.position.y = 0.10
+  let phrenzy = newUIImage("./assets/phrenzy.png")
+  phrenzy.margin = 30.0
+  result.addChild(phrenzy)
 
-  result.add(result.startButton)
-  result.add(result.quitButton)
+  result.startButton = newUIImage("./assets/start.png")
+  result.startButton.margin = 30.0
+
+  result.quitButton = newUIImage("./assets/quit.png")
+  result.quitButton.margin = 30.0
+
+  result.addChild(result.startButton)
+  result.addChild(result.quitButton)
 

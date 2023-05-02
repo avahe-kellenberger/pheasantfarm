@@ -1,6 +1,7 @@
 import shade
 
 import std/random
+import constants
 
 const speed = 16.0
 let pheasantAABB* = aabb(-4, -2, 4, 0)
@@ -186,7 +187,7 @@ proc createNewPheasant*(kind: PheasantKind): Pheasant =
   initPhysicsBody(PhysicsBody(result), shape)
 
   result.sprite = createPheasantSprite(kind)
-  result.sprite.scale = vector(0.75, 0.75)
+  result.sprite.scale = vector(0.75, 0.75) * RENDER_SCALAR
   result.sprite.offset.y = -result.sprite.size.y * 0.5
 
   result.animationPlayer = createAnimPlayer(result)

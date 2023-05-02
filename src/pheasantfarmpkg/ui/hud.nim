@@ -1,127 +1,177 @@
 import shade
 
-import strformat
+import format, fontloader, ../egg
 
-import panel, ui, button, label, format, ../egg
-export ui, button, label
-
-type HUD* = ref object of Panel
-  dayLabel: Label
-  timeRemainingLabel: Label
-  moneyLabel: Label
-  eggTextWhite: Label
-  eggTextPurple: Label
-  eggTextBlue: Label
-  eggTextGolden: Label
+type HUD* = ref object of UIComponent
+  dayLabel: UITextComponent
+  timeRemainingLabel: UITextComponent
+  moneyLabel: UITextComponent
+  eggTextWhite: UITextComponent
+  eggTextPurple: UITextComponent
+  eggTextBlue: UITextComponent
+  eggTextGolden: UITextComponent
 
 proc setEggCount*(this: HUD, kind: EggKind, count: int)
 
+proc wrap(components: varargs[UIComponent]): UIComponent =
+  result = newUIComponent()
+  result.stackDirection = Horizontal
+  result.alignHorizontal = Alignment.Start
+  result.alignVertical = Alignment.Center
+
+  for component in components:
+    result.addChild(component)
+
 proc newHUD*(): HUD =
   result = HUD()
-  initPanel(Panel(result))
+  initUIComponent(UIComponent result)
 
-  let bgImage = newButton("./assets/hud.png")
-  result.size = bgImage.size
-  result.add(bgImage)
+  let (_, hudImage) = Images.loadImage("./assets/hud.png")
+  hudImage.setImageFilter(FILTER_NEAREST)
 
-  # Time
+  result.width = float hudImage.w
+  result.height = float hudImage.h
 
-  let sun = newButton("./assets/sun.png")
-  sun.scale = vector(3, 3)
-  sun.position.x = -0.9
-  result.add(sun)
+  let font = getFont()
 
-  result.dayLabel = newLabel("01", WHITE)
-  result.dayLabel.position.x = sun.position.x + 0.12
-  result.add(result.dayLabel)
+  let bgImage = newUIImage(hudImage)
+  result.addChild(bgImage)
+  bgImage.imageAlignVertical = ImageAlignment.Center
+  bgImage.imageAlignHorizontal = ImageAlignment.Center
+  bgImage.stackDirection = StackDirection.Horizontal
+  bgImage.alignVertical = SpaceEvenly
+  bgImage.alignHorizontal = SpaceEvenly
+  bgImage.padding = 10.0
 
-  let hourglass = newButton("./assets/hourglass.png")
-  hourglass.scale = vector(3.5, 3.5)
-  hourglass.position.x = result.dayLabel.position.x + 0.12
-  result.add(hourglass)
+  block day:
+    let sun = newUIImage("./assets/sun.png", FILTER_NEAREST)
+    sun.scale = vector(3, 3)
+    sun.margin = margin(0, 0, 5, 0)
 
-  result.timeRemainingLabel = newLabel("", WHITE)
-  result.timeRemainingLabel.position.x = hourglass.position.x + 0.11
-  result.add(result.timeRemainingLabel)
+    result.dayLabel = newText(font, "01", WHITE)
+    result.dayLabel.margin = margin(0, 0, 0, 0)
+    result.dayLabel.textAlignVertical = TextAlignment.Center
 
-  let moneyImage = newButton("./assets/money.png")
-  moneyImage.scale = vector(3.5, 3.5)
-  moneyImage.position.x = result.timeRemainingLabel.position.x + 0.12
-  result.add(moneyImage)
+    let wrapper = wrap(sun, result.dayLabel)
+    wrapper.height = 64.0
+    wrapper.width = 100.0
+    bgImage.addChild(wrapper)
 
-  result.moneyLabel = newLabel("", WHITE)
-  result.moneyLabel.position.x = moneyImage.position.x + 0.20
-  result.add(result.moneyLabel)
+  block time:
+    let hourglass = newUIImage("./assets/hourglass.png", FILTER_NEAREST)
+    hourglass.scale = vector(3.5, 3.5)
+    hourglass.margin = margin(0, 0, 5, 0)
+
+    result.timeRemainingLabel = newText(font, "", WHITE)
+    result.timeRemainingLabel.margin = margin(0, 0, 0, 0)
+    result.timeRemainingLabel.textAlignVertical = TextAlignment.Center
+
+    let wrapper = wrap(hourglass, result.timeRemainingLabel)
+    wrapper.height = 64.0
+    wrapper.width = 100.0
+    bgImage.addChild(wrapper)
+
+  block currency:
+    let money = newUIImage("./assets/money.png", FILTER_NEAREST)
+    money.scale = vector(3.5, 3.5)
+    money.margin = margin(0, 0, 5, 0)
+
+    result.moneyLabel = newText(font, "", WHITE)
+    result.moneyLabel.margin = margin(0, 0, 0, 0)
+    result.moneyLabel.textAlignVertical = TextAlignment.Center
+
+    let wrapper = wrap(money, result.moneyLabel)
+    wrapper.height = 64.0
+    wrapper.width = 160.0
+    bgImage.addChild(wrapper)
 
   # Eggs
 
-  const distBetweenEggIcons = 0.12
+  block whiteEgg:
+    let whiteEggImage = newUISprite(newSprite(getEggImage(), 4, 1))
+    whiteEggImage.margin = margin(0, 0, 5, 0)
+    whiteEggImage.scale = vector(6.0, 6.0)
 
-  result.eggTextGolden = newLabel("", WHITE)
-  result.eggTextGolden.position.x = 0.9
-  result.add(result.eggTextGolden)
+    result.eggTextWhite = newText(font, "", WHITE)
+    result.eggTextWhite.margin = margin(0, 0, 0, 0)
+    result.eggTextWhite.textAlignVertical = TextAlignment.Center
 
-  let goldenEggImage = newButton(newSprite(getEggImage(), 4, 1))
-  goldenEggImage.position.x = result.eggTextGolden.position.x - distBetweenEggIcons
-  goldenEggImage.sprite.frameCoords.x = ord(EggKind.GOLDEN)
-  goldenEggImage.scale = vector(6.0, 6.0)
-  result.add(goldenEggImage)
+    let wrapper = wrap(whiteEggImage, result.eggTextWhite)
+    wrapper.height = 64.0
+    wrapper.width = 85.0
+    bgImage.addChild(wrapper)
 
-  result.eggTextBlue = newLabel("", WHITE)
-  result.eggTextBlue.position.x = goldenEggImage.position.x - distBetweenEggIcons
-  result.add(result.eggTextBlue)
+  block purpleEgg:
+    let purpleEggImage = newUISprite(newSprite(getEggImage(), 4, 1))
+    purpleEggImage.margin = margin(0, 0, 5, 0)
+    purpleEggImage.sprite.frameCoords.x = ord(EggKind.PURPLE)
+    purpleEggImage.scale = vector(6.0, 6.0)
 
-  let blueEggImage = newButton(newSprite(getEggImage(), 4, 1))
-  blueEggImage.position.x = result.eggTextBlue.position.x - distBetweenEggIcons
-  blueEggImage.sprite.frameCoords.x = ord(EggKind.BLUE)
-  blueEggImage.scale = vector(6.0, 6.0)
-  result.add(blueEggImage)
+    result.eggTextPurple = newText(font, "", WHITE)
+    result.eggTextPurple.margin = margin(0, 0, 0, 0)
+    result.eggTextPurple.textAlignVertical = TextAlignment.Center
 
-  result.eggTextPurple = newLabel("", WHITE)
-  result.eggTextPurple.position.x = blueEggImage.position.x - distBetweenEggIcons
-  result.add(result.eggTextPurple)
+    let wrapper = wrap(purpleEggImage, result.eggTextPurple)
+    wrapper.height = 64.0
+    wrapper.width = 85.0
+    bgImage.addChild(wrapper)
 
-  let purpleEggImage = newButton(newSprite(getEggImage(), 4, 1))
-  purpleEggImage.position.x = result.eggTextPurple.position.x - distBetweenEggIcons
-  purpleEggImage.sprite.frameCoords.x = ord(EggKind.PURPLE)
-  purpleEggImage.scale = vector(6.0, 6.0)
-  result.add(purpleEggImage)
+  block blueEgg:
+    let blueEggImage = newUISprite(newSprite(getEggImage(), 4, 1))
+    blueEggImage.margin = margin(0, 0, 5, 0)
+    blueEggImage.sprite.frameCoords.x = ord(EggKind.BLUE)
+    blueEggImage.scale = vector(6.0, 6.0)
 
-  result.eggTextWhite = newLabel("", WHITE)
-  result.eggTextWhite.position.x = purpleEggImage.position.x - distBetweenEggIcons
-  result.add(result.eggTextWhite)
+    result.eggTextBlue = newText(font, "", WHITE)
+    result.eggTextBlue.margin = margin(0, 0, 0, 0)
+    result.eggTextBlue.textAlignVertical = TextAlignment.Center
 
-  let whiteEggImage = newButton(newSprite(getEggImage(), 4, 1))
-  whiteEggImage.position.x = result.eggTextWhite.position.x - distBetweenEggIcons
-  whiteEggImage.scale = vector(6.0, 6.0)
-  result.add(whiteEggImage)
+    let wrapper = wrap(blueEggImage, result.eggTextBlue)
+    wrapper.height = 64.0
+    wrapper.width = 85.0
+    bgImage.addChild(wrapper)
+
+  block goldenEgg:
+    let goldenEggImage = newUISprite(newSprite(getEggImage(), 4, 1))
+    goldenEggImage.margin = margin(0, 0, 5, 0)
+    goldenEggImage.sprite.frameCoords.x = ord(EggKind.GOLDEN)
+    goldenEggImage.scale = vector(6.0, 6.0)
+
+    result.eggTextGolden = newText(font, "", WHITE)
+    result.eggTextGolden.textAlignVertical = TextAlignment.Center
+    result.moneyLabel.margin = margin(0, 0, 0, 0)
+
+    let wrapper = wrap(goldenEggImage, result.eggTextGolden)
+    wrapper.height = 64.0
+    wrapper.width = 85.0
+    bgImage.addChild(wrapper)
 
   for eggKind in EggKind.low .. EggKind.high:
     result.setEggCount(eggKind, 0)
 
 proc setDay*(this: HUD, day: int) =
-  this.dayLabel.setText(formatInt(day, 2))
+  this.dayLabel.text = formatInt(day, 2)
 
 proc setTimeRemaining*(this: HUD, timeInSeconds: int) =
-  this.timeRemainingLabel.setText(formatInt(timeInSeconds, 2))
+  this.timeRemainingLabel.text = formatInt(timeInSeconds, 2)
 
 proc setMoney*(this: HUD, money: int) =
   var displayValue = money
   if displayValue < 0:
     displayValue = 0
-    this.moneyLabel.setColor(RED)
+    this.moneyLabel.color = RED
   else:
-    this.moneyLabel.setColor(WHITE)
-  this.moneyLabel.setText(formatInt(displayValue, 5))
+    this.moneyLabel.color = WHITE
+  this.moneyLabel.text = formatInt(displayValue, 5)
 
 proc setEggCount*(this: HUD, kind: EggKind, count: int) =
   case kind:
     of EggKind.WHITE:
-      this.eggTextWhite.setText(formatInt(count, 2))
+      this.eggTextWhite.text = formatInt(count, 2)
     of EggKind.PURPLE:
-      this.eggTextPurple.setText(formatInt(count, 2))
+      this.eggTextPurple.text = formatInt(count, 2)
     of EggKind.BLUE:
-      this.eggTextBlue.setText(formatInt(count, 2))
+      this.eggTextBlue.text = formatInt(count, 2)
     of EggKind.GOLDEN:
-      this.eggTextGolden.setText(formatInt(count, 2))
+      this.eggTextGolden.text = formatInt(count, 2)
 
