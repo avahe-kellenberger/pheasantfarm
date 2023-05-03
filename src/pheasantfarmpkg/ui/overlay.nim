@@ -24,6 +24,7 @@ proc newOverlay*(fadeTime: float, onFadeOutFinished: proc(), onFadeInFinished: p
   result.dayLabel = newText(getFont(), "01", WHITE)
   result.dayLabel.visible = false
   result.addChild(result.dayLabel)
+  # TODO: Using hack to calculate height before first render pass.
   result.dayLabel.determineWidthAndHeight()
 
   result.animationPlayer = newAnimationPlayer()
