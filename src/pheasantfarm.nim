@@ -52,7 +52,11 @@ when isMainModule:
   Input.addKeyPressedListener(
     K_ESCAPE,
     proc(key: Keycode, state: KeyState) =
-      Game.stop()
+      if layer != nil:
+        if layer.isGameOver:
+          layer.gameOverScreen.quitButton.handlePress(0, 0)
+        else:
+          Game.stop()
   )
 
   Game.start()

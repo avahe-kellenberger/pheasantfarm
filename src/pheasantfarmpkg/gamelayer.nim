@@ -19,12 +19,12 @@ import tags as tagsModule
 
 const
   numStartingPheasants = 10 # 10_000
-  dayLengthInSeconds = 30
-  startingMoney = 50
+  dayLengthInSeconds = 1 # 30
+  startingMoney = 0 # 50
   startingPheedCount = 0 # numStartingPheasants * 2
   startingWaterCount = 0 # numStartingPheasants * 2
   startingNestCount = 0 # 2
-  taxDayFrequency = 4
+  taxDayFrequency = 1
   fadeAnimationTime = 15.0
 
 var
@@ -38,6 +38,7 @@ var
 
 type
   GameLayer* = ref object of Layer
+    isGameOver*: bool
     hud*: HUD
     itemPanel*: ItemPanel
     summary*: Summary
@@ -84,6 +85,7 @@ proc getTilePlayerIsFacing(this: GameLayer): TileCoord
 proc isTileInPlayArea(this: GameLayer, tile: TileCoord): bool
 proc placeNest(this: GameLayer, tile: TileCoord)
 proc isBlocking(body: PhysicsBody): bool
+proc onGameOver(this: GameLayer)
 
 template loseCondition(this: GameLayer): bool =
   this.money < 0
@@ -191,7 +193,7 @@ proc newGameLayer*(grid: Grid): GameLayer =
   result.summary = newSummary(
     proc() =
       if this.loseCondition():
-        this.gameOverScreen.visible = true
+        this.onGameOver()
       else:
         this.openShop()
   )
@@ -578,6 +580,11 @@ proc placeNest(this: GameLayer, tile: TileCoord) =
     this.itemPanel.setNestCount(this.nestCount)
 
     this.checkNestAndEggCollisions(nest, tile)
+
+proc onGameOver(this: GameLayer) =
+  ## Invoked when the player has lost the game.
+  this.isGameOver = true
+  this.gameOverScreen.endGame(this.day)
 
 method update*(this: GameLayer, deltaTime: float) =
   if this.timeRemaining > 0 or not hasGameStarted:
