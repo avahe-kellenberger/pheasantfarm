@@ -31,6 +31,7 @@ proc newEgg*(eggKind: EggKind = EggKind.WHITE): Egg =
   result = Egg(kind: PhysicsBodyKind.STATIC)
 
   let sprite = newSprite(getEggImage(), 4, 1)
+  sprite.scale = vector(0.75, 0.75) * RENDER_SCALAR
   var shape = newCollisionShape(
     aabb(-5, -6, 5, 6).getScaledInstance(sprite.scale)
   )
@@ -40,7 +41,6 @@ proc newEgg*(eggKind: EggKind = EggKind.WHITE): Egg =
   result.eggKind = eggKind
   result.sprite = sprite
   result.sprite.frameCoords.x = ord(eggKind)
-  result.sprite.scale = vector(0.75, 0.75) * RENDER_SCALAR
 
 
 proc calcTotal*(eggCount: CountTable[EggKind]): int =
