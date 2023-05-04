@@ -3,6 +3,7 @@ import shade
 
 import pheasantfarmpkg/[fences, gamelayer, constants]
 import pheasantfarmpkg/ui/startmenu as startMenuModule
+import pheasantfarmpkg/ui/hiscoresmenu as hiscoresMenuModule
 import pheasantfarmpkg/grid as gridModule
 
 randomize()
@@ -45,6 +46,21 @@ when isMainModule:
     layer.itemPanel.visible = true
 
     layer.startNewDay()
+
+  let hiscoresMenu = newHiscoresMenu()
+  hiscoresMenu.disableAndHide()
+
+  root.addChild(hiscoresMenu)
+  startMenu.hiscoresButton.onPressed:
+    menuClickSound.play()
+    startMenu.disableAndHide()
+    hiscoresMenu.enableAndSetVisible()
+    hiscoresMenu.populateScores()
+
+  hiscoresMenu.backButton.onPressed:
+    menuClickSound.play()
+    hiscoresMenu.disableAndHide()
+    startMenu.enableAndSetVisible()
 
   startMenu.quitButton.onPressed:
     Game.stop()

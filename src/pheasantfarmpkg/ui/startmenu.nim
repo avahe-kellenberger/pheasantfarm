@@ -1,8 +1,10 @@
 import shade
+import fontloader
 
 type
   StartMenu* = ref object of UIComponent
     startButton*: UIImage
+    hiscoresButton*: UIImage
     quitButton*: UIImage
 
 proc newStartMenu*(): StartMenu =
@@ -25,12 +27,39 @@ proc newStartMenu*(): StartMenu =
   phrenzy.margin = 30.0
   result.addChild(phrenzy)
 
-  result.startButton = newUIImage("./assets/start.png")
+  let
+    itemBgImage = Images.loadImage("./assets/shop_board.png").image
+    font = Fonts.load("./assets/fonts/mozart.ttf", 86).font
+
+  result.startButton = newUIImage(itemBgImage)
+  result.startButton.alignVertical = Alignment.Center
+  result.startButton.alignHorizontal = Alignment.Center
   result.startButton.margin = 30.0
 
-  result.quitButton = newUIImage("./assets/quit.png")
+  let startText = newText(font, "Start", WHITE)
+  startText.processInputEvents = false
+  result.startButton.addChild(startText)
+
+  result.hiscoresButton = newUIImage(itemBgImage)
+  result.hiscoresButton.scale = vector(1.2, 1.0)
+  result.hiscoresButton.alignVertical = Alignment.Center
+  result.hiscoresButton.alignHorizontal = Alignment.Center
+  result.hiscoresButton.margin = 30.0
+
+  let hiscoresText = newText(font, "Hiscores", WHITE)
+  hiscoresText.processInputEvents = false
+  result.hiscoresButton.addChild(hiscoresText)
+
+  result.quitButton = newUIImage(itemBgImage)
+  result.quitButton.alignVertical = Alignment.Center
+  result.quitButton.alignHorizontal = Alignment.Center
   result.quitButton.margin = 30.0
 
+  let quitText = newText(font, "Quit", WHITE)
+  quitText.processInputEvents = false
+  result.quitButton.addChild(quitText)
+
   result.addChild(result.startButton)
+  result.addChild(result.hiscoresButton)
   result.addChild(result.quitButton)
 

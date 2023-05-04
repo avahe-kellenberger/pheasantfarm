@@ -19,8 +19,8 @@ import tags as tagsModule
 
 const
   numStartingPheasants = 10 # 10_000
-  dayLengthInSeconds = 1 # 30
-  startingMoney = 0 # 50
+  dayLengthInSeconds = 30
+  startingMoney = 50
   startingPheedCount = 0 # numStartingPheasants * 2
   startingWaterCount = 0 # numStartingPheasants * 2
   startingNestCount = 0 # 2

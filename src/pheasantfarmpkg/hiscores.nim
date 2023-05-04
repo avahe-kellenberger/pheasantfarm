@@ -2,11 +2,11 @@ import std/[algorithm, os, base64, strutils, parseutils, sequtils]
 
 const
   hiscoresFile = "hiscores.pf"
-  maxSavedHiscores = 10
+  maxSavedHiscores = 5
 
 type Hiscore = object
-  name: string
-  day: int
+  name*: string
+  day*: int
 
 proc hiscore(name: string, day: int): Hiscore =
   Hiscore(name: name, day: day)
