@@ -1,14 +1,14 @@
 import std/tables
-import shade, safeset, seq2d
+import shade, safeseq, seq2d
 import random
 import ui/fontloader
 
-export safeset
+export safeseq
 
 type
   Tile = ref object
-    taggedBodies: Table[int, Safeset[PhysicsBody]]
-    unknownBodies: Safeset[PhysicsBody]
+    taggedBodies: Table[int, SafeSeq[PhysicsBody]]
+    unknownBodies: SafeSeq[PhysicsBody]
   TileCoord* = tuple[x: int, y: int]
   Grid* = ref object
     tiles: Seq2D[Tile]
@@ -21,7 +21,7 @@ const NULL_TILE* = (-1, -1)
 
 proc newTile(): Tile =
   result = Tile()
-  result.unknownBodies = newSafeset[PhysicsBody]()
+  result.unknownBodies = newSafeSeq[PhysicsBody]()
 
 proc len(this: Tile): int =
   for taggedBodySet in this.taggedBodies.values:
@@ -94,7 +94,7 @@ proc addPhysicsBodies*(this: Grid, tag: int, bodies: varargs[PhysicsBody]) =
       let tile = this[x, y]
       var taggedBodySet = tile.taggedBodies.getOrDefault(tag, nil)
       if taggedBodySet == nil:
-        taggedBodySet = newSafeSet[PhysicsBody]()
+        taggedBodySet = newSafeSeq[PhysicsBody]()
         tile.taggedBodies[tag] = taggedBodySet
       taggedBodySet.add(body)
 

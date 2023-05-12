@@ -24,7 +24,7 @@ const
   startingPheedCount = 0 # numStartingPheasants * 2
   startingWaterCount = 0 # numStartingPheasants * 2
   startingNestCount = 0 # 2
-  taxDayFrequency = 1
+  taxDayFrequency = 4
   fadeAnimationTime = 15.0
 
 var
@@ -50,7 +50,7 @@ type
     innerFenceAreaForPheasants: AABB
 
     # Only dynamic physics bodies that require collision checks
-    bodies: SafeSet[PhysicsBody]
+    bodies: SafeSeq[PhysicsBody]
     grid: Grid
     colliders: HashSet[PhysicsBody]
 
@@ -205,7 +205,7 @@ proc newGameLayer*(grid: Grid): GameLayer =
 
   root.addChild(result.gameOverScreen)
 
-  result.bodies = newSafeset[PhysicsBody]()
+  result.bodies = newSafeSeq[PhysicsBody]()
   result.grid = grid
   result.colliders = initHashSet[PhysicsBody]()
 
@@ -321,14 +321,15 @@ template isTaxDay(this: GameLayer): bool =
   this.day mod taxDayFrequency == 0
 
 proc clearEggsAndNests(this: GameLayer) =
-  # TODO: This is super slow because Layer uses a SafeSet.
-  # Hopefully can optimise this.
-  for child in this.childIterator:
-    if child of Egg or child of Nest:
-      this.removeChild(child)
-      this.grid.removePhysicsBodies(PhysicsBody(child))
+  let runtime = measureRuntime:
+    for child in this.childIterator:
+      if child of Egg or child of Nest:
+        this.removeChild(child)
+        this.grid.removePhysicsBodies(PhysicsBody(child))
 
-  this.nestsOnGround.setLen(0)
+    this.nestsOnGround.setLen(0)
+
+  echo "Cleared eggs and nests in " & $runtime & " seconds."
 
 proc loadNewDay*(this: GameLayer) =
   inc this.day

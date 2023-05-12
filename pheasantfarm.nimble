@@ -10,6 +10,7 @@ bin = @["pheasantfarm"]
 
 # Dependencies
 requires "nim >= 1.6.6"
+requires "safeseq >= 0.1.0"
 requires "https://github.com/einheit-tech/shade#24427e822241ecc15280a9ae9b3d20f4a45b4751"
 
 import os
